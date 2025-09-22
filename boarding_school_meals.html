@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Repas des Compagnons</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Gris clair pour le fond */
+        }
+        .view-hidden {
+            display: none;
+        }
+        .calendar-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .calendar-table th, .calendar-table td {
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            height: 120px;
+        }
+        .calendar-table th {
+            text-align: center;
+            background-color: #f9fafb;
+        }
+        .calendar-day-number {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .other-month {
+            background-color: #f9fafb;
+            color: #d1d5db;
+        }
+        .meal-choice-btn.selected {
+            background-color: #1e40af; /* Bleu Compagnons */
+            color: white;
+            font-weight: bold;
+        }
+        .admin-tab.active {
+            border-bottom: 2px solid #ea580c; /* Orange Compagnons */
+            color: #1e3a8a; /* Bleu foncé */
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <!-- En-tête -->
+        <header class="bg-white shadow-md rounded-lg p-4 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <img src="https://www.compagnons-du-devoir.com/sites/default/files/logo_cddt_0.png" alt="Logo Compagnons du Devoir" class="h-16">
+                    <div>
+                        <h1 class="text-3xl font-bold text-blue-800">Gestion des Repas</h1>
+                        <p class="text-gray-500 mt-1">Application de la Maison de La Rochelle</p>
+                    </div>
+                </div>
+                <div id="header-controls" class="flex items-center space-x-4 mt-4 md:mt-0 view-hidden">
+                     <span id="user-id-display" class="text-sm text-gray-500 bg-gray-200 px-3 py-1 rounded-full"></span>
+                     <button id="logout-btn" class="px-4 py-2 text-sm font-medium bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none">Déconnexion</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Vue de Connexion -->
+        <main id="login-view">
+             <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-center text-blue-800 mb-6">Identifiez-vous</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="user-select" class="block text-sm font-medium text-gray-700">Choisissez votre profil</label>
+                        <select id="user-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option>Chargement...</option>
+                        </select>
+                    </div>
+                    <button id="login-user-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-900">
+                        Accéder à mon calendrier
+                    </button>
+                </div>
+                <div class="mt-6 border-t pt-4">
+                     <label for="admin-password" class="block text-sm font-medium text-gray-700">Accès Administrateur</label>
+                     <input type="password" id="admin-password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Mot de passe">
+                     <button id="login-admin-btn" class="mt-2 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700">
+                        Connexion Admin
+                    </button>
+                    <p id="admin-error" class="text-red-500 text-xs mt-1"></p>
+                </div>
+             </div>
+        </main>
+
+        <!-- Vue Itinérant -->
+        <main id="itinerant-view" class="view-hidden">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div id="calendar-header" class="text-center mb-4">
+                    <h2 class="text-2xl font-semibold"></h2>
+                </div>
+                <div id="calendar-container" class="overflow-x-auto">
+                    <!-- Le calendrier sera injecté ici -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Vue Administrateur -->
+        <main id="admin-view" class="view-hidden">
+            <!-- Onglets de navigation Admin -->
+            <div class="mb-4 border-b border-gray-200">
+                <nav class="flex space-x-8" aria-label="Tabs">
+                    <button class="admin-tab active" data-tab="reports">Rapports & Décomptes</button>
+                    <button class="admin-tab" data-tab="users">Gestion Utilisateurs</button>
+                    <button class="admin-tab" data-tab="menus">Gestion Menus</button>
+                </nav>
+            </div>
+
+            <!-- Contenu des onglets -->
+            <div id="admin-tab-content">
+                <!-- Rapports -->
+                <div id="tab-reports">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold mb-4" id="admin-header-daily">Décompte journalier</h3>
+                            <div id="admin-counts-container"></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-semibold">Décompte par Itinérant</h3>
+                                <button id="export-csv-btn" class="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700">Exporter (CSV)</button>
+                            </div>
+                            <div id="admin-user-counts-container" class="max-h-96 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gestion Utilisateurs -->
+                <div id="tab-users" class="view-hidden">
+                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold mb-4">Créer un utilisateur</h3>
+                            <form id="create-user-form" class="space-y-4">
+                                <input type="text" id="user-nom" placeholder="Nom" required class="w-full p-2 border rounded">
+                                <input type="text" id="user-prenom" placeholder="Prénom" required class="w-full p-2 border rounded">
+                                <input type="email" id="user-email" placeholder="Email" required class="w-full p-2 border rounded">
+                                <input type="text" id="user-chambre" placeholder="N° de chambre" required class="w-full p-2 border rounded">
+                                <select id="user-metier" required class="w-full p-2 border rounded">
+                                    <option value="" disabled selected>Choisir un métier</option>
+                                    <option>Menuisier</option><option>Charpentier</option><option>Maçon</option><option>Plombier</option>
+                                    <option>Serrurier-Métallier</option><option>Peintre</option><option>Boulanger</option><option>Pâtissier</option>
+                                </select>
+                                <button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">Créer</button>
+                                <p id="user-create-feedback" class="text-green-600 text-sm"></p>
+                            </form>
+                        </div>
+                        <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold mb-4">Liste des utilisateurs</h3>
+                            <div id="user-list-container" class="max-h-96 overflow-y-auto"></div>
+                        </div>
+                     </div>
+                </div>
+
+                <!-- Gestion Menus -->
+                <div id="tab-menus" class="view-hidden">
+                    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-semibold mb-4">Ajouter / Modifier un menu</h2>
+                        <form id="meal-form" class="space-y-4">
+                             <div>
+                                <label for="day" class="block text-sm font-medium text-gray-700">Jour de la semaine</label>
+                                <select id="day" name="day" class="mt-1 block w-full p-2 border-gray-300 rounded-md">
+                                    <option>Lundi</option> <option>Mardi</option> <option>Mercredi</option> <option>Jeudi</option> <option>Vendredi</option> <option>Samedi</option> <option>Dimanche</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="meal-type" class="block text-sm font-medium text-gray-700">Type de repas</label>
+                                <select id="meal-type" name="meal-type" class="mt-1 block w-full p-2 border-gray-300 rounded-md">
+                                    <option>Déjeuner</option>
+                                    <option>Dîner</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-gray-700">Description du repas</label>
+                                <textarea id="description" name="description" rows="4" class="mt-1 w-full p-2 border border-gray-300 rounded-md" placeholder="Ex: Poulet rôti, frites..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">
+                                Enregistrer le menu
+                            </button>
+                             <div id="save-feedback" class="text-center text-green-600 font-medium mt-2"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, query, where, getDocs, addDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Config ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : undefined;
+        const ADMIN_PASSWORD = "admin"; // Change this in a real app!
+
+        // --- Firebase ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- Global State ---
+        let currentUserId = null; // Firestore Auth UID
+        let selectedUserProfile = null; // User profile object
+        let allUsers = []; // Cache for all user profiles
+        let allSchedules = []; // Cache for all schedules
+        const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+        const now = new Date();
+        const targetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const targetYear = targetDate.getFullYear();
+        const targetMonth = targetDate.getMonth();
+
+        // --- DOM Elements ---
+        const loginView = document.getElementById('login-view');
+        const itinerantView = document.getElementById('itinerant-view');
+        const adminView = document.getElementById('admin-view');
+        const headerControls = document.getElementById('header-controls');
+        const userSelect = document.getElementById('user-select');
+        const adminPasswordInput = document.getElementById('admin-password');
+        const adminError = document.getElementById('admin-error');
+        const calendarContainer = document.getElementById('calendar-container');
+        const calendarHeader = document.getElementById('calendar-header').querySelector('h2');
+        const adminHeaderDaily = document.getElementById('admin-header-daily');
+        const adminCountsContainer = document.getElementById('admin-counts-container');
+        const adminUserCountsContainer = document.getElementById('admin-user-counts-container');
+        const userListContainer = document.getElementById('user-list-container');
+        const createUserForm = document.getElementById('create-user-form');
+        const userCreateFeedback = document.getElementById('user-create-feedback');
+        
+        // --- Collections Refs ---
+        const getUsersCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'users');
+        const getSchedulesCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'schedules');
+        const getMenusCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'menus');
+
+        // --- App Initialization ---
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUserId = user.uid;
+                // Now that we are authenticated, we can load the initial data for the login screen
+                loadUsersForLogin();
+                showView('login');
+            } else {
+                // If no user, attempt to sign in. This will trigger onAuthStateChanged again on success.
+                console.log("No user found, attempting sign-in...");
+                if (initialAuthToken) {
+                    signInWithCustomToken(auth, initialAuthToken).catch(err => console.error("Custom token sign-in error:", err));
+                } else {
+                    signInAnonymously(auth).catch(err => console.error("Anonymous sign-in error:", err));
+                }
+            }
+        });
+
+        const loadUsersForLogin = () => {
+            onSnapshot(query(getUsersCollection()), (snapshot) => {
+                allUsers = [];
+                snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
+                userSelect.innerHTML = '<option value="">-- Sélectionnez votre nom --</option>';
+                allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.prenom} ${user.nom}`;
+                    userSelect.appendChild(option);
+                });
+            });
+        };
+        
+        // --- View & State Management ---
+        const showView = (viewName) => {
+            loginView.classList.add('view-hidden');
+            itinerantView.classList.add('view-hidden');
+            adminView.classList.add('view-hidden');
+            headerControls.classList.add('view-hidden');
+
+            if (viewName === 'login') {
+                loginView.classList.remove('view-hidden');
+            } else if (viewName === 'itinerant') {
+                itinerantView.classList.remove('view-hidden');
+                headerControls.classList.remove('view-hidden');
+            } else if (viewName === 'admin') {
+                adminView.classList.remove('view-hidden');
+                headerControls.classList.remove('view-hidden');
+            }
+        };
+
+        const logout = () => {
+            selectedUserProfile = null;
+            document.getElementById('user-id-display').textContent = '';
+            showView('login');
+        };
+        
+        // --- Itinerant Logic ---
+        const initializeItinerantView = () => {
+            if (!selectedUserProfile) return;
+            document.getElementById('user-id-display').textContent = `Profil: ${selectedUserProfile.prenom}`;
+            
+            const scheduleDocId = `${selectedUserProfile.id}-${targetYear}-${targetMonth}`;
+            onSnapshot(doc(getSchedulesCollection(), scheduleDocId), (doc) => {
+                const userSchedule = doc.exists() ? doc.data() : {};
+                renderItinerantCalendar(userSchedule);
+            });
+        };
+
+        const renderItinerantCalendar = (schedule = {}) => {
+            const { monthName, daysInMonth, firstDayIndex } = getMonthData(targetYear, targetMonth);
+            calendarHeader.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+            let html = `<table class="calendar-table"><thead><tr>`;
+            daysOfWeek.forEach(day => html += `<th>${day.substring(0,3)}</th>`);
+            html += `</tr></thead><tbody><tr>`;
+            for (let i = 0; i < firstDayIndex; i++) { html += `<td class="other-month"></td>`; }
+            for (let day = 1; day <= daysInMonth; day++) {
+                if (day > 1 && (firstDayIndex + day - 1) % 7 === 0) { html += `</tr><tr>`; }
+                const daySchedule = schedule[day] || {};
+                const midiStatus = daySchedule.midi || '-';
+                const soirStatus = daySchedule.soir || '-';
+                html += `<td><div class="calendar-day-number">${day}</div><div class="mt-1 space-y-2 text-xs">
+                    <div class="flex items-center"><span class="w-10">Midi:</span><button data-day="${day}" data-meal="midi" data-status="1" class="meal-choice-btn p-1 border rounded ${midiStatus === '1' || midiStatus === 'S' ? 'selected' : ''}">1</button><button data-day="${day}" data-meal="midi" data-status="0" class="meal-choice-btn p-1 border rounded ml-1 ${midiStatus === '0' || midiStatus === 'V' ? 'selected' : ''}">0</button></div>
+                    <div class="flex items-center"><span class="w-10">Soir:</span><button data-day="${day}" data-meal="soir" data-status="1" class="meal-choice-btn p-1 border rounded ${soirStatus === '1' || soirStatus === 'S' ? 'selected' : ''}">1</button><button data-day="${day}" data-meal="soir" data-status="0" class="meal-choice-btn p-1 border rounded ml-1 ${soirStatus === '0' || soirStatus === 'V' ? 'selected' : ''}">0</button></div>
+                    <div class="border-t pt-1 mt-1 flex space-x-1"><button data-day="${day}" data-type="stage" class="day-action-btn flex-1 p-1 border rounded bg-blue-100 hover:bg-blue-200">Stage</button><button data-day="${day}" data-type="vacances" class="day-action-btn flex-1 p-1 border rounded bg-yellow-100 hover:bg-yellow-200">Vacance</button></div>
+                </div></td>`;
+            }
+            html += `</tr></tbody></table>`;
+            calendarContainer.innerHTML = html;
+        };
+
+        // --- Admin Logic ---
+        const initializeAdminView = () => {
+            document.getElementById('user-id-display').textContent = 'Mode Administrateur';
+            const schedulesQuery = query(getSchedulesCollection(), where("month", "==", targetMonth), where("year", "==", targetYear));
+            
+            onSnapshot(schedulesQuery, (snapshot) => {
+                 allSchedules = [];
+                 snapshot.forEach(doc => allSchedules.push({ id: doc.id, ...doc.data() }));
+                 renderAdminReports();
+            });
+
+            onSnapshot(query(getUsersCollection()), (snapshot) => {
+                allUsers = [];
+                snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
+                renderUserList();
+                renderAdminReports(); // Re-render reports with updated user list
+            });
+        };
+        
+        const renderAdminReports = () => {
+            const { monthName, daysInMonth } = getMonthData(targetYear, targetMonth);
+            adminHeaderDaily.textContent = `Décompte journalier pour ${monthName}`;
+            
+            const dailyCounts = {};
+            for(let day=1; day<=daysInMonth; day++) { dailyCounts[day] = { midi: 0, soir: 0 }; }
+
+            allSchedules.forEach(schedule => {
+                for(let day=1; day<=daysInMonth; day++) {
+                    const daySchedule = schedule[day];
+                    if (daySchedule) {
+                        if (daySchedule.midi === '1' || daySchedule.midi === 'S') dailyCounts[day].midi++;
+                        if (daySchedule.soir === '1' || daySchedule.soir === 'S') dailyCounts[day].soir++;
+                    }
+                }
+            });
+
+            let dailyHtml = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border">Jour</th><th class="p-2 border">Déjeuner</th><th class="p-2 border">Dîner</th></tr></thead><tbody>`;
+            for(let day=1; day<=daysInMonth; day++) {
+                dailyHtml += `<tr><td class="p-2 border font-bold">${day}</td><td class="p-2 border text-center text-blue-800 font-bold">${dailyCounts[day].midi}</td><td class="p-2 border text-center text-blue-800 font-bold">${dailyCounts[day].soir}</td></tr>`;
+            }
+            dailyHtml += `</tbody></table>`;
+            adminCountsContainer.innerHTML = dailyHtml;
+
+            // User counts
+            let userHtml = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border">Midi</th><th class="p-2 border">Soir</th></tr></thead><tbody>`;
+            allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
+                const userSchedule = allSchedules.find(s => s.userId === user.id);
+                let midiCount = 0;
+                let soirCount = 0;
+                if(userSchedule) {
+                    for(let day=1; day<=daysInMonth; day++) {
+                        const daySchedule = userSchedule[day];
+                        if (daySchedule) {
+                            if (daySchedule.midi === '1' || daySchedule.midi === 'S') midiCount++;
+                            if (daySchedule.soir === '1' || daySchedule.soir === 'S') soirCount++;
+                        }
+                    }
+                }
+                userHtml += `<tr><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border text-center font-bold">${midiCount}</td><td class="p-2 border text-center font-bold">${soirCount}</td></tr>`;
+            });
+            userHtml += `</tbody></table>`;
+            adminUserCountsContainer.innerHTML = userHtml;
+        };
+
+        const renderUserList = () => {
+             let html = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Métier</th><th class="p-2 border">Chambre</th></tr></thead><tbody>`;
+             allUsers.forEach(user => {
+                 html += `<tr><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border">${user.metier}</td><td class="p-2 border text-center">${user.chambre}</td></tr>`;
+             });
+             html += `</tbody></table>`;
+             userListContainer.innerHTML = html;
+        };
+
+        const exportToCSV = () => {
+             const { daysInMonth } = getMonthData(targetYear, targetMonth);
+             let csvContent = "data:text/csv;charset=utf-8,";
+             csvContent += "Prénom,Nom,Métier,Chambre,Total Midi,Total Soir\r\n";
+
+            allUsers.forEach(user => {
+                const userSchedule = allSchedules.find(s => s.userId === user.id);
+                let midiCount = 0;
+                let soirCount = 0;
+                if(userSchedule) {
+                     for(let day=1; day<=daysInMonth; day++) {
+                        const daySchedule = userSchedule[day];
+                        if(daySchedule) {
+                            if (daySchedule.midi === '1' || daySchedule.midi === 'S') midiCount++;
+                            if (daySchedule.soir === '1' || daySchedule.soir === 'S') soirCount++;
+                        }
+                    }
+                }
+                csvContent += `${user.prenom},${user.nom},${user.metier},${user.chambre},${midiCount},${soirCount}\r\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `decompte_repas_${targetYear}_${targetMonth+1}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+        
+        // --- Helpers ---
+        const getMonthData = (year, month) => {
+            const monthName = new Date(year, month).toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+            return { monthName, daysInMonth, firstDayIndex };
+        };
+
+        // --- Event Listeners ---
+        document.getElementById('login-user-btn').addEventListener('click', () => {
+            const selectedId = userSelect.value;
+            if (selectedId) {
+                selectedUserProfile = allUsers.find(u => u.id === selectedId);
+                if (selectedUserProfile) {
+                    showView('itinerant');
+                    initializeItinerantView();
+                }
+            }
+        });
+
+        document.getElementById('login-admin-btn').addEventListener('click', () => {
+            if (adminPasswordInput.value === ADMIN_PASSWORD) {
+                adminError.textContent = '';
+                adminPasswordInput.value = '';
+                showView('admin');
+                initializeAdminView();
+            } else {
+                adminError.textContent = 'Mot de passe incorrect.';
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', logout);
+        document.getElementById('export-csv-btn').addEventListener('click', exportToCSV);
+
+        createUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newUser = {
+                nom: document.getElementById('user-nom').value,
+                prenom: document.getElementById('user-prenom').value,
+                email: document.getElementById('user-email').value,
+                chambre: document.getElementById('user-chambre').value,
+                metier: document.getElementById('user-metier').value,
+                createdAt: serverTimestamp()
+            };
+            try {
+                await addDoc(getUsersCollection(), newUser);
+                userCreateFeedback.textContent = 'Utilisateur créé !';
+                createUserForm.reset();
+                setTimeout(() => userCreateFeedback.textContent = '', 3000);
+            } catch (err) {
+                console.error(err);
+                userCreateFeedback.textContent = 'Erreur lors de la création.';
+            }
+        });
+
+        calendarContainer.addEventListener('click', async (e) => {
+            const target = e.target;
+            const day = target.dataset.day;
+            if (!day || !selectedUserProfile) return;
+
+            const scheduleDocRef = doc(getSchedulesCollection(), `${selectedUserProfile.id}-${targetYear}-${targetMonth}`);
+            let currentDayValues = {};
+            const scheduleDoc = await getDoc(scheduleDocRef).catch(() => null);
+            if (scheduleDoc && scheduleDoc.exists() && scheduleDoc.data()[day]) {
+                currentDayValues = scheduleDoc.data()[day];
+            }
+
+            const updateSchedule = (values) => {
+                 setDoc(scheduleDocRef, { 
+                    [day]: values,
+                    userId: selectedUserProfile.id,
+                    year: targetYear,
+                    month: targetMonth
+                 }, { merge: true }).catch(console.error);
+            };
+
+            if (target.classList.contains('meal-choice-btn')) {
+                currentDayValues[target.dataset.meal] = target.dataset.status;
+                updateSchedule(currentDayValues);
+            }
+            if (target.classList.contains('day-action-btn')) {
+                updateSchedule({ midi: target.dataset.type === 'stage' ? 'S' : 'V', soir: target.dataset.type === 'stage' ? 'S' : 'V' });
+            }
+        });
+
+        document.querySelector('.admin-tab[data-tab="reports"]').parentElement.addEventListener('click', (e) => {
+            if (e.target.matches('.admin-tab')) {
+                const tab = e.target.dataset.tab;
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                document.getElementById('tab-reports').classList.add('view-hidden');
+                document.getElementById('tab-users').classList.add('view-hidden');
+                document.getElementById('tab-menus').classList.add('view-hidden');
+
+                document.getElementById(`tab-${tab}`).classList.remove('view-hidden');
+            }
+        });
+        
+        document.getElementById('meal-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const mealId = `${form.day.value}-${form['meal-type'].value}`;
+            try {
+                await setDoc(doc(getMenusCollection(), mealId), { 
+                    day: form.day.value, 
+                    mealType: form['meal-type'].value, 
+                    description: form.description.value 
+                });
+                document.getElementById('save-feedback').textContent = 'Menu enregistré !';
+                form.description.value = '';
+                setTimeout(() => document.getElementById('save-feedback').textContent = '', 2000);
+            } catch (error) { console.error("Error saving meal: ", error); }
+        });
+    </script>
+</body>
+</html>
