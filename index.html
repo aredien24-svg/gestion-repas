@@ -112,7 +112,7 @@
         <main id="salarie-view" class="view-hidden">
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <div class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
-                    <p>Vous pouvez modifier votre présence pour une date donnée jusqu'à <strong>8 jours ouvrés</strong> avant celle-ci. Les jours passés ou verrouillés sont grisés.</p>
+                    <p>Vous pouvez modifier votre présence pour une semaine jusqu'au <strong>jeudi de l'avant-dernière semaine</strong>. Ex: la semaine du 20 au 24 est modifiable jusqu'au jeudi 9 au soir. Les jours verrouillés sont grisés.</p>
                 </div>
                 <div id="salarie-calendar-header" class="flex justify-between items-center text-center mb-4">
                     <button id="salarie-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
@@ -293,17 +293,23 @@
         };
 
         const getDeadline = (targetDate) => {
-            let deadline = new Date(targetDate.getTime());
-            deadline.setHours(0, 0, 0, 0); // Start from the beginning of the day
-            let workingDaysToSubtract = 8;
-            while (workingDaysToSubtract > 0) {
-                deadline.setDate(deadline.getDate() - 1);
-                const dayOfWeek = deadline.getDay();
-                if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
-                    workingDaysToSubtract--;
-                }
-            }
+            const date = new Date(targetDate.getTime());
+            date.setHours(0, 0, 0, 0);
+
+            // 1. Find the Monday of the target week.
+            // getDay() is 0 for Sun, 1 for Mon... We want Monday to be day 1.
+            const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay(); 
+            const dateOfMonday = date.getDate() - dayOfWeek + 1;
+            const mondayOfTargetWeek = new Date(date.setDate(dateOfMonday));
+            
+            // 2. The deadline is the Thursday two weeks before. 
+            // This is equivalent to 11 days before the Monday of the target week.
+            const deadline = new Date(mondayOfTargetWeek);
+            deadline.setDate(mondayOfTargetWeek.getDate() - 11);
+            
+            // Set the time to the end of the day.
             deadline.setHours(23, 59, 59, 999);
+
             return deadline;
         };
 
