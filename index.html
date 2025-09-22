@@ -18,13 +18,17 @@
             padding: 8px;
             text-align: left;
             vertical-align: top;
-            height: 140px; /* Increased height for menu */
         }
+        .itinerant-day { height: 140px; }
+        .salarie-day { height: 80px; }
         .calendar-table th { text-align: center; background-color: #f9fafb; }
         .calendar-day-number { font-weight: bold; font-size: 1.1rem; }
         .other-month { background-color: #f9fafb; color: #d1d5db; }
         .meal-choice-btn.selected { background-color: #1e40af; color: white; font-weight: bold; }
         .admin-tab.active { border-bottom: 2px solid #ea580c; color: #1e3a8a; }
+        .day-locked { background-color: #f3f4f6; cursor: not-allowed; }
+        .day-locked .meal-choice-btn { pointer-events: none; opacity: 0.6; }
+
     </style>
 </head>
 <body class="text-gray-800">
@@ -77,12 +81,27 @@
         <!-- Vue Itinérant -->
         <main id="itinerant-view" class="view-hidden">
             <div class="bg-white p-6 rounded-lg shadow-md">
-                <div id="calendar-header" class="flex justify-between items-center text-center mb-4">
-                    <button id="prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
+                <div id="itinerant-calendar-header" class="flex justify-between items-center text-center mb-4">
+                    <button id="itinerant-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
                     <h2 class="text-2xl font-semibold"></h2>
-                    <button id="next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
+                    <button id="itinerant-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
                 </div>
-                <div id="calendar-container" class="overflow-x-auto"></div>
+                <div id="itinerant-calendar-container" class="overflow-x-auto"></div>
+            </div>
+        </main>
+
+        <!-- Vue Salarié -->
+        <main id="salarie-view" class="view-hidden">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
+                    <p>Vous pouvez indiquer votre présence pour le déjeuner de la semaine prochaine jusqu'au <strong>jeudi soir</strong> de la semaine en cours. Les jours passés ou verrouillés sont grisés.</p>
+                </div>
+                <div id="salarie-calendar-header" class="flex justify-between items-center text-center mb-4">
+                    <button id="salarie-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
+                    <h2 class="text-2xl font-semibold"></h2>
+                    <button id="salarie-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
+                </div>
+                <div id="salarie-calendar-container" class="overflow-x-auto"></div>
             </div>
         </main>
 
@@ -108,7 +127,7 @@
                         <div class="bg-white p-6 rounded-lg shadow-md"><div id="admin-counts-container"></div></div>
                         <div class="bg-white p-6 rounded-lg shadow-md">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-xl font-semibold">Décompte par Itinérant</h3>
+                                <h3 class="text-xl font-semibold">Décompte par Utilisateur</h3>
                                 <button id="export-csv-btn" class="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700">Exporter (CSV)</button>
                             </div>
                             <div id="admin-user-counts-container" class="max-h-96 overflow-y-auto"></div>
@@ -122,14 +141,22 @@
                         <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
                             <h3 class="text-xl font-semibold mb-4">Créer un utilisateur</h3>
                             <form id="create-user-form" class="space-y-4">
+                                <div>
+                                    <label for="user-type" class="block text-sm font-medium text-gray-700">Type de profil</label>
+                                    <select id="user-type" required class="w-full p-2 border rounded mt-1">
+                                        <option value="itinérant">Itinérant</option>
+                                        <option value="salarié">Salarié</option>
+                                    </select>
+                                </div>
                                 <input type="text" id="user-nom" placeholder="Nom" required class="w-full p-2 border rounded">
                                 <input type="text" id="user-prenom" placeholder="Prénom" required class="w-full p-2 border rounded">
                                 <input type="email" id="user-email" placeholder="Email" required class="w-full p-2 border rounded">
-                                <input type="text" id="user-chambre" placeholder="N° de chambre" required class="w-full p-2 border rounded">
+                                <input type="text" id="user-chambre" placeholder="N° de chambre / Bureau" required class="w-full p-2 border rounded">
                                 <select id="user-metier" required class="w-full p-2 border rounded">
-                                    <option value="" disabled selected>Choisir un métier</option>
+                                    <option value="" disabled selected>Choisir un métier / service</option>
                                     <option>Menuisier</option><option>Charpentier</option><option>Maçon</option><option>Plombier</option>
                                     <option>Serrurier-Métallier</option><option>Peintre</option><option>Boulanger</option><option>Pâtissier</option>
+                                    <option>Administration</option><option>Formateur</option><option>Personnel de Maison</option>
                                 </select>
                                 <button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">Créer</button>
                                 <p id="user-create-feedback" class="text-green-600 text-sm"></p>
@@ -211,11 +238,14 @@
         // --- DOM Elements ---
         const loginView = document.getElementById('login-view');
         const itinerantView = document.getElementById('itinerant-view');
+        const salarieView = document.getElementById('salarie-view');
         const adminView = document.getElementById('admin-view');
         const headerControls = document.getElementById('header-controls');
         const userSelect = document.getElementById('user-select');
-        const calendarContainer = document.getElementById('calendar-container');
-        const calendarHeader = document.getElementById('calendar-header').querySelector('h2');
+        const itinerantCalendarContainer = document.getElementById('itinerant-calendar-container');
+        const itinerantCalendarHeader = document.getElementById('itinerant-calendar-header').querySelector('h2');
+        const salarieCalendarContainer = document.getElementById('salarie-calendar-container');
+        const salarieCalendarHeader = document.getElementById('salarie-calendar-header').querySelector('h2');
         const adminHeaderDaily = document.getElementById('admin-header-daily');
         const userListContainer = document.getElementById('user-list-container');
         const adminCountsContainer = document.getElementById('admin-counts-container');
@@ -230,15 +260,23 @@
         const getMonthData = (year, month) => {
             const monthName = new Date(year, month).toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+            const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Monday = 0
             return { monthName, daysInMonth, firstDayIndex };
         };
 
         const updateCurrentDate = (monthOffset) => {
             currentDate.setDate(1); 
             currentDate.setMonth(currentDate.getMonth() + monthOffset);
-            if (selectedUserProfile) initializeItinerantView();
-            if (adminView.classList.contains('view-hidden') === false) initializeAdminView();
+            if (selectedUserProfile) {
+                if (selectedUserProfile.type === 'salarié') {
+                    initializeSalarieView();
+                } else {
+                    initializeItinerantView();
+                }
+            }
+            if (!adminView.classList.contains('view-hidden')) {
+                 initializeAdminView();
+            }
         };
 
         // --- App Initialization ---
@@ -252,12 +290,8 @@
                     allUsers = [];
                     snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
                     
-                    // Re-render user list only if admin view is active
-                    if(!adminView.classList.contains('view-hidden')) {
-                        renderUserList();
-                    }
+                    if(!adminView.classList.contains('view-hidden')) renderUserList();
 
-                    // Update login select dropdown
                     userSelect.innerHTML = '<option value="">-- Sélectionnez votre nom --</option>';
                     if (snapshot.empty) {
                          const option = document.createElement('option');
@@ -268,7 +302,7 @@
                         allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
                             const option = document.createElement('option');
                             option.value = user.id;
-                            option.textContent = `${user.prenom} ${user.nom}`;
+                            option.textContent = `${user.prenom} ${user.nom} (${user.type})`;
                             userSelect.appendChild(option);
                         });
                     }
@@ -279,9 +313,8 @@
 
                 listenToMenus();
                 
-                if (!selectedUserProfile) {
-                    showView('login');
-                }
+                if (!selectedUserProfile) showView('login');
+
             } else {
                 signInAnonymously(auth).catch(err => {
                     console.error("Anonymous sign-in failed:", err);
@@ -296,23 +329,25 @@
              onSnapshot(query(getMenusCollection()), (snapshot) => {
                 allMenus = {};
                 snapshot.forEach(doc => { allMenus[doc.id] = doc.data(); });
-                if (selectedUserProfile) initializeItinerantView();
+                if (selectedUserProfile) {
+                    if (selectedUserProfile.type === 'salarié') initializeSalarieView();
+                    else initializeItinerantView();
+                }
              });
         };
         
         const showView = (viewName) => {
             loginView.classList.add('view-hidden');
             itinerantView.classList.add('view-hidden');
+            salarieView.classList.add('view-hidden');
             adminView.classList.add('view-hidden');
             headerControls.classList.add('view-hidden');
 
-            if (viewName === 'login') {
-                loginView.classList.remove('view-hidden');
-            } else if (viewName === 'itinerant') {
-                itinerantView.classList.remove('view-hidden');
-                headerControls.classList.remove('view-hidden');
-            } else if (viewName === 'admin') {
-                adminView.classList.remove('view-hidden');
+            if (viewName === 'login') loginView.classList.remove('view-hidden');
+            else {
+                if (viewName === 'itinerant') itinerantView.classList.remove('view-hidden');
+                if (viewName === 'salarie') salarieView.classList.remove('view-hidden');
+                if (viewName === 'admin') adminView.classList.remove('view-hidden');
                 headerControls.classList.remove('view-hidden');
             }
         };
@@ -327,7 +362,7 @@
         // --- Itinerant Logic ---
         const initializeItinerantView = () => {
             if (!selectedUserProfile) return;
-            document.getElementById('user-id-display').textContent = `Profil: ${selectedUserProfile.prenom}`;
+            document.getElementById('user-id-display').textContent = `Profil: ${selectedUserProfile.prenom} (Itinérant)`;
             
             const targetYear = currentDate.getFullYear();
             const targetMonth = currentDate.getMonth();
@@ -343,32 +378,27 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const { monthName, daysInMonth, firstDayIndex } = getMonthData(year, month);
-            calendarHeader.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+            itinerantCalendarHeader.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
             let html = `<table class="calendar-table"><thead><tr>`;
             daysOfWeek.forEach(day => html += `<th>${day.substring(0,3)}</th>`);
             html += `</tr></thead><tbody><tr>`;
-            for (let i = 0; i < firstDayIndex; i++) { html += `<td class="other-month"></td>`; }
+            for (let i = 0; i < firstDayIndex; i++) html += `<td class="other-month"></td>`;
 
             for (let day = 1; day <= daysInMonth; day++) {
-                if (day > 1 && (firstDayIndex + day - 1) % 7 === 0) { html += `</tr><tr>`; }
+                if (day > 1 && (firstDayIndex + day - 1) % 7 === 0) html += `</tr><tr>`;
                 
                 const dayDate = new Date(year, month, day);
                 const dayOfWeekName = daysOfWeek[dayDate.getDay() === 0 ? 6 : dayDate.getDay() - 1];
-
                 const menuDejeuner = allMenus[`${dayOfWeekName}-Déjeuner`]?.description || '<i>Non défini</i>';
                 const menuDiner = allMenus[`${dayOfWeekName}-Dîner`]?.description || '<i>Non défini</i>';
-
                 const daySchedule = schedule[day] || {};
                 const midiStatus = daySchedule.midi || '-';
                 const soirStatus = daySchedule.soir || '-';
 
-                html += `<td>
+                html += `<td class="itinerant-day">
                     <div class="calendar-day-number">${day}</div>
-                    <div class="text-xs text-gray-500 mt-1 space-y-1">
-                        <p><b>M:</b> ${menuDejeuner}</p>
-                        <p><b>S:</b> ${menuDiner}</p>
-                    </div>
+                    <div class="text-xs text-gray-500 mt-1 space-y-1"><p><b>M:</b> ${menuDejeuner}</p><p><b>S:</b> ${menuDiner}</p></div>
                     <div class="mt-2 space-y-1 text-xs">
                          <div class="flex items-center"><span class="w-10">Midi:</span><button data-day="${day}" data-meal="midi" data-status="1" class="meal-choice-btn p-1 border rounded ${midiStatus === '1' || midiStatus === 'S' ? 'selected' : ''}">1</button><button data-day="${day}" data-meal="midi" data-status="0" class="meal-choice-btn p-1 border rounded ml-1 ${midiStatus === '0' || midiStatus === 'V' ? 'selected' : ''}">0</button></div>
                          <div class="flex items-center"><span class="w-10">Soir:</span><button data-day="${day}" data-meal="soir" data-status="1" class="meal-choice-btn p-1 border rounded ${soirStatus === '1' || soirStatus === 'S' ? 'selected' : ''}">1</button><button data-day="${day}" data-meal="soir" data-status="0" class="meal-choice-btn p-1 border rounded ml-1 ${soirStatus === '0' || soirStatus === 'V' ? 'selected' : ''}">0</button></div>
@@ -377,8 +407,71 @@
                 </td>`;
             }
             html += `</tr></tbody></table>`;
-            calendarContainer.innerHTML = html;
+            itinerantCalendarContainer.innerHTML = html;
         };
+        
+        // --- Salarié Logic ---
+        const initializeSalarieView = () => {
+             if (!selectedUserProfile) return;
+            document.getElementById('user-id-display').textContent = `Profil: ${selectedUserProfile.prenom} (Salarié)`;
+            
+            const targetYear = currentDate.getFullYear();
+            const targetMonth = currentDate.getMonth();
+            const scheduleDocId = `${selectedUserProfile.id}-${targetYear}-${targetMonth}`;
+            
+            onSnapshot(doc(getSchedulesCollection(), scheduleDocId), (doc) => {
+                const userSchedule = doc.exists() ? doc.data() : {};
+                renderSalarieCalendar(userSchedule);
+            });
+        };
+
+        const renderSalarieCalendar = (schedule = {}) => {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const { monthName, daysInMonth, firstDayIndex } = getMonthData(year, month);
+            salarieCalendarHeader.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let html = `<table class="calendar-table"><thead><tr>`;
+            daysOfWeek.forEach(day => html += `<th>${day.substring(0,3)}</th>`);
+            html += `</tr></thead><tbody><tr>`;
+            for (let i = 0; i < firstDayIndex; i++) html += `<td class="other-month"></td>`;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                if (day > 1 && (firstDayIndex + day - 1) % 7 === 0) html += `</tr><tr>`;
+                
+                const cellDate = new Date(year, month, day);
+                const cellIsoDay = cellDate.getDay() === 0 ? 7 : cellDate.getDay();
+                const daysToMonday = cellIsoDay - 1;
+                const cellMonday = new Date(cellDate);
+                cellMonday.setDate(cellDate.getDate() - daysToMonday);
+                const deadline = new Date(cellMonday);
+                deadline.setDate(cellMonday.getDate() - 4); // Thursday of the previous week
+                deadline.setHours(23, 59, 59, 999);
+
+                const isLocked = today > deadline || cellDate < today;
+                const lockedClass = isLocked ? 'day-locked' : '';
+
+                const daySchedule = schedule[day] || {};
+                const midiStatus = daySchedule.midi || '-';
+
+                html += `<td class="salarie-day ${lockedClass}">
+                    <div class="calendar-day-number">${day}</div>
+                    <div class="mt-2 text-center">
+                        <p class="text-sm mb-2">Déjeuner</p>
+                        <div class="flex justify-center space-x-2">
+                           <button data-day="${day}" data-meal="midi" data-status="1" class="meal-choice-btn p-2 w-12 border rounded ${midiStatus === '1' ? 'selected' : ''}">Oui</button>
+                           <button data-day="${day}" data-meal="midi" data-status="0" class="meal-choice-btn p-2 w-12 border rounded ${midiStatus === '0' ? 'selected' : ''}">Non</button>
+                        </div>
+                    </div>
+                </td>`;
+            }
+            html += `</tr></tbody></table>`;
+            salarieCalendarContainer.innerHTML = html;
+        };
+
 
         // --- Admin Logic ---
         const initializeAdminView = () => {
@@ -393,7 +486,6 @@
                  renderAdminReports();
             });
 
-            // Initial render is handled by the main onSnapshot listener
              renderUserList();
         };
 
@@ -407,11 +499,14 @@
             for(let day=1; day<=daysInMonth; day++) { dailyCounts[day] = { midi: 0, soir: 0 }; }
 
             allSchedules.forEach(schedule => {
+                const user = allUsers.find(u => u.id === schedule.userId);
+                if (!user) return;
+                
                 for(let day=1; day<=daysInMonth; day++) {
                     const daySchedule = schedule[day];
                     if (daySchedule) {
-                        if (daySchedule.midi === '1' || daySchedule.midi === 'S') dailyCounts[day].midi++;
-                        if (daySchedule.soir === '1' || daySchedule.soir === 'S') dailyCounts[day].soir++;
+                        if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) dailyCounts[day].midi++;
+                        if (user.type === 'itinérant' && (daySchedule.soir === '1' || daySchedule.soir === 'S')) dailyCounts[day].soir++;
                     }
                 }
             });
@@ -423,7 +518,7 @@
             dailyHtml += `</tbody></table>`;
             adminCountsContainer.innerHTML = dailyHtml;
 
-            let userHtml = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border">Midi</th><th class="p-2 border">Soir</th></tr></thead><tbody>`;
+            let userHtml = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Type</th><th class="p-2 border">Midi</th><th class="p-2 border">Soir</th></tr></thead><tbody>`;
             allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
                 const userSchedule = allSchedules.find(s => s.userId === user.id);
                 let midiCount = 0;
@@ -432,21 +527,21 @@
                     for(let day=1; day<=daysInMonth; day++) {
                         const daySchedule = userSchedule[day];
                         if (daySchedule) {
-                            if (daySchedule.midi === '1' || daySchedule.midi === 'S') midiCount++;
-                            if (daySchedule.soir === '1' || daySchedule.soir === 'S') soirCount++;
+                             if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) midiCount++;
+                             if (user.type === 'itinérant' && (daySchedule.soir === '1' || daySchedule.soir === 'S')) soirCount++;
                         }
                     }
                 }
-                userHtml += `<tr><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border text-center font-bold">${midiCount}</td><td class="p-2 border text-center font-bold">${soirCount}</td></tr>`;
+                userHtml += `<tr><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border">${user.type}</td><td class="p-2 border text-center font-bold">${midiCount}</td><td class="p-2 border text-center font-bold">${soirCount}</td></tr>`;
             });
             userHtml += `</tbody></table>`;
             adminUserCountsContainer.innerHTML = userHtml;
         };
         
         const renderUserList = () => {
-             let html = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Métier</th><th class="p-2 border text-left">Chambre</th><th class="p-2 border">Actions</th></tr></thead><tbody>`;
+             let html = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Type</th><th class="p-2 border text-left">Métier/Service</th><th class="p-2 border">Actions</th></tr></thead><tbody>`;
              allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
-                 html += `<tr data-user-row-id="${user.id}"><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border">${user.metier}</td><td class="p-2 border">${user.chambre}</td><td class="p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" data-name="${user.prenom} ${user.nom}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
+                 html += `<tr data-user-row-id="${user.id}"><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border">${user.type}</td><td class="p-2 border">${user.metier}</td><td class="p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
              });
              html += `</tbody></table>`;
              userListContainer.innerHTML = html;
@@ -457,7 +552,7 @@
              const month = currentDate.getMonth();
              const { daysInMonth } = getMonthData(year, month);
              let csvContent = "data:text/csv;charset=utf-8,";
-             csvContent += "Prénom,Nom,Métier,Chambre,Total Midi,Total Soir\r\n";
+             csvContent += "Prénom,Nom,Type,Métier/Service,Chambre/Bureau,Total Midi,Total Soir\r\n";
 
             allUsers.forEach(user => {
                 const userSchedule = allSchedules.find(s => s.userId === user.id);
@@ -467,12 +562,12 @@
                      for(let day=1; day<=daysInMonth; day++) {
                         const daySchedule = userSchedule[day];
                         if(daySchedule) {
-                            if (daySchedule.midi === '1' || daySchedule.midi === 'S') midiCount++;
-                            if (daySchedule.soir === '1' || daySchedule.soir === 'S') soirCount++;
+                            if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) midiCount++;
+                            if (user.type === 'itinérant' && (daySchedule.soir === '1' || daySchedule.soir === 'S')) soirCount++;
                         }
                     }
                 }
-                csvContent += `${user.prenom},${user.nom},${user.metier},${user.chambre},${midiCount},${soirCount}\r\n`;
+                csvContent += `${user.prenom},${user.nom},${user.type},${user.metier},${user.chambre},${midiCount},${soirCount}\r\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -491,11 +586,17 @@
                 selectedUserProfile = allUsers.find(u => u.id === selectedId);
                 if (selectedUserProfile) {
                     currentDate = new Date();
-                    showView('itinerant');
-                    initializeItinerantView();
+                    if (selectedUserProfile.type === 'salarié') {
+                        showView('salarie');
+                        initializeSalarieView();
+                    } else {
+                        showView('itinerant');
+                        initializeItinerantView();
+                    }
                 }
             }
         });
+
         document.getElementById('login-admin-btn').addEventListener('click', () => {
              if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
                 document.getElementById('admin-error').textContent = '';
@@ -517,7 +618,8 @@
             const newUser = {
                 nom: form['user-nom'].value, prenom: form['user-prenom'].value,
                 email: form['user-email'].value, chambre: form['user-chambre'].value,
-                metier: form['user-metier'].value, createdAt: serverTimestamp()
+                metier: form['user-metier'].value, type: form['user-type'].value,
+                createdAt: serverTimestamp()
             };
             try {
                 await addDoc(getUsersCollection(), newUser);
@@ -527,12 +629,14 @@
             } catch (err) { console.error(err); }
         });
 
-        document.getElementById('prev-month-btn').addEventListener('click', () => updateCurrentDate(-1));
-        document.getElementById('next-month-btn').addEventListener('click', () => updateCurrentDate(1));
+        document.getElementById('itinerant-prev-month-btn').addEventListener('click', () => updateCurrentDate(-1));
+        document.getElementById('itinerant-next-month-btn').addEventListener('click', () => updateCurrentDate(1));
+        document.getElementById('salarie-prev-month-btn').addEventListener('click', () => updateCurrentDate(-1));
+        document.getElementById('salarie-next-month-btn').addEventListener('click', () => updateCurrentDate(1));
         document.getElementById('admin-prev-month-btn').addEventListener('click', () => updateCurrentDate(-1));
         document.getElementById('admin-next-month-btn').addEventListener('click', () => updateCurrentDate(1));
 
-        calendarContainer.addEventListener('click', async (e) => {
+        itinerantCalendarContainer.addEventListener('click', async (e) => {
             const target = e.target;
             const day = target.dataset.day;
             if (!day || !selectedUserProfile) return;
@@ -564,6 +668,26 @@
             }
         });
         
+        salarieCalendarContainer.addEventListener('click', async (e) => {
+             const target = e.target;
+             const day = target.dataset.day;
+            if (!day || !selectedUserProfile || target.closest('.day-locked')) return;
+
+            const targetYear = currentDate.getFullYear();
+            const targetMonth = currentDate.getMonth();
+            const scheduleDocRef = doc(getSchedulesCollection(), `${selectedUserProfile.id}-${targetYear}-${targetMonth}`);
+           
+            if (target.classList.contains('meal-choice-btn')) {
+                const newStatus = target.dataset.status;
+                 setDoc(scheduleDocRef, { 
+                    [day]: { midi: newStatus },
+                    userId: selectedUserProfile.id,
+                    year: targetYear,
+                    month: targetMonth
+                 }, { merge: true }).catch(console.error);
+            }
+        });
+
         userListContainer.addEventListener('click', async (e) => {
             const target = e.target;
             const row = target.closest('tr');
@@ -603,9 +727,9 @@
                     const updatedData = {
                         nom: row.querySelector('.edit-nom-input').value,
                         prenom: row.querySelector('.edit-prenom-input').value,
-                        email: row.querySelector('.edit-email-input').value,
                         chambre: row.querySelector('.edit-chambre-input').value,
                         metier: row.querySelector('.edit-metier-select').value,
+                        type: row.querySelector('.edit-type-select').value
                     };
                     await updateDoc(doc(getUsersCollection(), userId), updatedData);
                 } catch (error) { console.error("Error updating user:", error); }
@@ -619,12 +743,17 @@
                 renderUserList();
                 const rowToEdit = userListContainer.querySelector(`tr[data-user-row-id="${userId}"]`);
                 if (!rowToEdit) return;
-                const metierOptions = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier'];
-                const selectOptions = metierOptions.map(m => `<option value="${m}" ${userToEdit.metier === m ? 'selected' : ''}>${m}</option>`).join('');
+                
+                const metierOptions = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier', 'Administration', 'Formateur', 'Personnel de Maison'];
+                const metierSelect = metierOptions.map(m => `<option value="${m}" ${userToEdit.metier === m ? 'selected' : ''}>${m}</option>`).join('');
+                
+                const typeOptions = ['itinérant', 'salarié'];
+                const typeSelect = typeOptions.map(t => `<option value="${t}" ${userToEdit.type === t ? 'selected' : ''}>${t}</option>`).join('');
+
                 rowToEdit.innerHTML = `
-                    <td class="p-2 border"><input class="w-full p-1 border rounded edit-prenom-input" value="${userToEdit.prenom}" placeholder="Prénom"><input class="w-full p-1 border rounded mt-1 edit-nom-input" value="${userToEdit.nom}" placeholder="Nom"></td>
-                    <td class="p-2 border"><select class="w-full p-1 border rounded edit-metier-select">${selectOptions}</select></td>
-                    <td class="p-2 border"><input class="w-full p-1 border rounded edit-chambre-input" value="${userToEdit.chambre}" placeholder="Chambre"></td>
+                    <td class="p-2 border"><input class="w-full p-1 border rounded edit-prenom-input" value="${userToEdit.prenom}"><input class="w-full p-1 border rounded mt-1 edit-nom-input" value="${userToEdit.nom}"></td>
+                    <td class="p-2 border"><select class="w-full p-1 border rounded edit-type-select">${typeSelect}</select></td>
+                    <td class="p-2 border"><select class="w-full p-1 border rounded edit-metier-select">${metierSelect}</select><input class="w-full p-1 border rounded mt-1 edit-chambre-input" value="${userToEdit.chambre}"></td>
                     <td class="p-2 border text-center align-middle"><button data-id="${userId}" class="save-edit-btn text-green-600 hover:text-green-800 font-bold">OK</button><button class="cancel-edit-btn text-gray-600 hover:text-gray-800 ml-2">X</button></td>
                 `;
             }
