@@ -48,7 +48,7 @@
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center space-x-4">
                     <img src="https://www.compagnons-du-devoir.com/sites/default/files/logo_cddt_0.png" alt="Logo Compagnons du Devoir" class="h-16">
-                    <div>
+                    <div class="text-center md:text-left">
                         <h1 class="text-3xl font-bold text-blue-800">Gestion des Repas</h1>
                         <p class="text-gray-500 mt-1">Application de la Maison de La Rochelle</p>
                     </div>
@@ -233,6 +233,7 @@
         let allMenus = {}; // Cache for menus
         const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
         let currentDate = new Date();
+        let unsubscribeUsersLoginListener = null; // Listener for the login dropdown
 
         // --- DOM Elements ---
         const loginView = document.getElementById('login-view');
@@ -273,12 +274,46 @@
         onAuthStateChanged(auth, user => {
             if (user) {
                 currentUserId = user.uid;
-                loadUsersForLogin();
+                
+                // Detach any previous listener to avoid duplicates
+                if (unsubscribeUsersLoginListener) unsubscribeUsersLoginListener();
+                
+                // Attach the listener for the login dropdown. This is the main fix for the loading bug.
+                unsubscribeUsersLoginListener = onSnapshot(query(getUsersCollection()), (snapshot) => {
+                    allUsers = [];
+                    snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
+                    userSelect.innerHTML = '<option value="">-- Sélectionnez votre nom --</option>';
+                    
+                    if (snapshot.empty) {
+                         const option = document.createElement('option');
+                         option.textContent = "Aucun utilisateur créé";
+                         option.disabled = true;
+                         userSelect.appendChild(option);
+                    } else {
+                        allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
+                            const option = document.createElement('option');
+                            option.value = user.id;
+                            option.textContent = `${user.prenom} ${user.nom}`;
+                            userSelect.appendChild(option);
+                        });
+                    }
+                }, (error) => {
+                    console.error("Firestore error on users collection:", error);
+                    userSelect.innerHTML = '<option>Erreur de chargement</option>';
+                });
+
                 listenToMenus();
-                showView('login');
+                
+                if (!selectedUserProfile) {
+                    showView('login');
+                }
             } else {
-                if (initialAuthToken) { signInWithCustomToken(auth, initialAuthToken); } 
-                else { signInAnonymously(auth); }
+                if (unsubscribeUsersLoginListener) {
+                    unsubscribeUsersLoginListener();
+                    unsubscribeUsersLoginListener = null;
+                }
+                if (initialAuthToken) { signInWithCustomToken(auth, initialAuthToken).catch(err => console.error(err)); } 
+                else { signInAnonymously(auth).catch(err => console.error(err)); }
             }
         });
 
@@ -290,20 +325,6 @@
              });
         };
         
-        const loadUsersForLogin = () => {
-            onSnapshot(query(getUsersCollection()), (snapshot) => {
-                allUsers = [];
-                snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
-                userSelect.innerHTML = '<option value="">-- Sélectionnez votre nom --</option>';
-                allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.id;
-                    option.textContent = `${user.prenom} ${user.nom}`;
-                    userSelect.appendChild(option);
-                });
-            });
-        };
-
         const showView = (viewName) => {
             loginView.classList.add('view-hidden');
             itinerantView.classList.add('view-hidden');
@@ -655,3 +676,4 @@
     </script>
 </body>
 </html>
+
