@@ -512,7 +512,12 @@
                 }
                 
                 const deadline = getDeadline(cellDate);
-                const isLocked = today > deadline;
+                const windowStart = new Date(deadline.getTime());
+                windowStart.setDate(windowStart.getDate() - 6);
+                windowStart.setHours(0, 0, 0, 0);
+
+                // A day is locked if it's not in the current editable week
+                const isLocked = !(today >= windowStart && today <= deadline);
                 const lockedClass = isLocked ? 'day-locked' : '';
 
                 const daySchedule = schedule[day] || {};
