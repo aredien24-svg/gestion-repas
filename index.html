@@ -112,7 +112,7 @@
         <main id="salarie-view" class="view-hidden">
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <div class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
-                    <p>Vous pouvez indiquer votre présence pour le déjeuner de la semaine prochaine jusqu'au <strong>jeudi soir</strong> de la semaine en cours. Les jours passés ou verrouillés sont grisés.</p>
+                    <p>Vous pouvez modifier votre présence pour une date donnée jusqu'à <strong>8 jours ouvrés</strong> avant celle-ci. Les jours passés ou verrouillés sont grisés.</p>
                 </div>
                 <div id="salarie-calendar-header" class="flex justify-between items-center text-center mb-4">
                     <button id="salarie-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
@@ -290,6 +290,21 @@
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Monday = 0
             return { monthName, daysInMonth, firstDayIndex };
+        };
+
+        const getDeadline = (targetDate) => {
+            let deadline = new Date(targetDate.getTime());
+            deadline.setHours(0, 0, 0, 0); // Start from the beginning of the day
+            let workingDaysToSubtract = 8;
+            while (workingDaysToSubtract > 0) {
+                deadline.setDate(deadline.getDate() - 1);
+                const dayOfWeek = deadline.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Not Sunday or Saturday
+                    workingDaysToSubtract--;
+                }
+            }
+            deadline.setHours(23, 59, 59, 999);
+            return deadline;
         };
 
         const updateCurrentDate = (monthOffset) => {
@@ -482,15 +497,16 @@
                 if (day > 1 && (firstDayIndex + day - 1) % 7 === 0) html += `</tr><tr>`;
                 
                 const cellDate = new Date(year, month, day);
-                const cellIsoDay = cellDate.getDay() === 0 ? 7 : cellDate.getDay();
-                const daysToMonday = cellIsoDay - 1;
-                const cellMonday = new Date(cellDate);
-                cellMonday.setDate(cellDate.getDate() - daysToMonday);
-                const deadline = new Date(cellMonday);
-                deadline.setDate(cellMonday.getDate() - 4); // Thursday of the previous week
-                deadline.setHours(23, 59, 59, 999);
+                const dayOfWeek = cellDate.getDay();
+                const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
 
-                const isLocked = today > deadline || cellDate < today;
+                if (isWeekend) {
+                    html += `<td class="salarie-day other-month"><div class="calendar-day-number">${day}</div></td>`;
+                    continue;
+                }
+                
+                const deadline = getDeadline(cellDate);
+                const isLocked = today > deadline;
                 const lockedClass = isLocked ? 'day-locked' : '';
 
                 const daySchedule = schedule[day] || {};
