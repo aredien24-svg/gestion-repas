@@ -224,7 +224,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, query, where, getDocs, addDoc, serverTimestamp, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Config ---
@@ -238,7 +238,6 @@
             measurementId: "G-4KYNTJNL3T"
         };
         
-        const appId = firebaseConfig.projectId; // Use projectId as a unique identifier
         const ADMIN_PASSWORD = "admin";
 
         // --- Firebase ---
@@ -273,10 +272,10 @@
         const adminUserCountsContainer = document.getElementById('admin-user-counts-container');
         const deleteConfirmModal = document.getElementById('delete-confirm-modal');
         
-        // --- Collections Refs ---
-        const getUsersCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'users');
-        const getSchedulesCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'schedules');
-        const getMenusCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'menus');
+        // --- Collections Refs (Simplified Path) ---
+        const getUsersCollection = () => collection(db, 'users');
+        const getSchedulesCollection = () => collection(db, 'schedules');
+        const getMenusCollection = () => collection(db, 'menus');
         
         // --- Modal Management (Definitive Fix) ---
         const showModal = (modalToShow) => {
@@ -738,4 +737,22 @@
     </script>
 </body>
 </html>
+```
+
+### Étape 2 : Mettre à jour les règles de sécurité
+
+1.  Retournez dans la **Console Firebase**, section **Build > Firestore Database**.
+2.  Allez dans l'onglet "**Règles**".
+3.  Remplacez tout le contenu par les règles suivantes, puis cliquez sur **Publier**.
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read and write access to all collections for authenticated users
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
 
