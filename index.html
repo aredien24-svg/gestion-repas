@@ -56,17 +56,35 @@
         <main id="login-view">
              <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
                 <h2 class="text-2xl font-bold text-center text-blue-800 mb-6">Identifiez-vous</h2>
-                <div class="space-y-4">
+                
+                <!-- Section Itinérant -->
+                <div class="space-y-4 border-b pb-4 mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700">Accès Itinérant</h3>
                     <div>
-                        <label for="user-select" class="block text-sm font-medium text-gray-700">Choisissez votre profil</label>
-                        <select id="user-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                        <label for="itinerant-select" class="block text-sm font-medium text-gray-700">Choisissez votre profil</label>
+                        <select id="itinerant-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
                             <option>Chargement...</option>
                         </select>
                     </div>
-                    <button id="login-user-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-900">
-                        Accéder à mon calendrier
+                    <button id="login-itinerant-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-900">
+                        Accéder
                     </button>
                 </div>
+    
+                <!-- Section Salarié -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold text-gray-700">Accès Salarié</h3>
+                    <div>
+                        <label for="salarie-select" class="block text-sm font-medium text-gray-700">Choisissez votre profil</label>
+                        <select id="salarie-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                            <option>Chargement...</option>
+                        </select>
+                    </div>
+                    <button id="login-salarie-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-900">
+                        Accéder
+                    </button>
+                </div>
+                
                 <div class="mt-6 border-t pt-4">
                      <label for="admin-password" class="block text-sm font-medium text-gray-700">Accès Administrateur</label>
                      <input type="password" id="admin-password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Mot de passe">
@@ -151,20 +169,24 @@
                                 <input type="text" id="user-nom" placeholder="Nom" required class="w-full p-2 border rounded">
                                 <input type="text" id="user-prenom" placeholder="Prénom" required class="w-full p-2 border rounded">
                                 <input type="email" id="user-email" placeholder="Email" required class="w-full p-2 border rounded">
-                                <input type="text" id="user-chambre" placeholder="N° de chambre / Bureau" required class="w-full p-2 border rounded">
-                                <select id="user-metier" required class="w-full p-2 border rounded">
-                                    <option value="" disabled selected>Choisir un métier / service</option>
-                                    <option>Menuisier</option><option>Charpentier</option><option>Maçon</option><option>Plombier</option>
-                                    <option>Serrurier-Métallier</option><option>Peintre</option><option>Boulanger</option><option>Pâtissier</option>
-                                    <option>Administration</option><option>Formateur</option><option>Personnel de Maison</option>
-                                </select>
+                                <input type="text" id="user-chambre" placeholder="N° de chambre" required class="w-full p-2 border rounded">
+                                <div>
+                                    <label id="metier-service-label" for="user-metier" class="block text-sm font-medium text-gray-700">Métier</label>
+                                     <select id="user-metier" required class="w-full p-2 border rounded mt-1"></select>
+                                </div>
                                 <button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">Créer</button>
                                 <p id="user-create-feedback" class="text-green-600 text-sm"></p>
                             </form>
                         </div>
-                        <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-                            <h3 class="text-xl font-semibold mb-4">Liste des utilisateurs</h3>
-                            <div id="user-list-container" class="max-h-[30rem] overflow-y-auto"></div>
+                        <div id="user-lists-wrapper" class="lg:col-span-2 space-y-8">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-xl font-semibold mb-4">Liste des Itinérants</h3>
+                                <div id="itinerant-list-container" class="max-h-[30rem] overflow-y-auto"></div>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h3 class="text-xl font-semibold mb-4">Liste des Salariés</h3>
+                                <div id="salarie-list-container" class="max-h-[30rem] overflow-y-auto"></div>
+                            </div>
                         </div>
                      </div>
                 </div>
@@ -233,7 +255,10 @@
         let allMenus = {};
         const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
         let currentDate = new Date();
-        let unsubscribeUsersLoginListener = null; 
+        let unsubscribeUsersLoginListener = null;
+        
+        const itinerantMetiers = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier'];
+        const salarieServices = ['Développement', 'Administratif', 'Production', 'Financier'];
 
         // --- DOM Elements ---
         const loginView = document.getElementById('login-view');
@@ -241,13 +266,16 @@
         const salarieView = document.getElementById('salarie-view');
         const adminView = document.getElementById('admin-view');
         const headerControls = document.getElementById('header-controls');
-        const userSelect = document.getElementById('user-select');
+        const itinerantSelect = document.getElementById('itinerant-select');
+        const salarieSelect = document.getElementById('salarie-select');
         const itinerantCalendarContainer = document.getElementById('itinerant-calendar-container');
         const itinerantCalendarHeader = document.getElementById('itinerant-calendar-header').querySelector('h2');
         const salarieCalendarContainer = document.getElementById('salarie-calendar-container');
         const salarieCalendarHeader = document.getElementById('salarie-calendar-header').querySelector('h2');
         const adminHeaderDaily = document.getElementById('admin-header-daily');
-        const userListContainer = document.getElementById('user-list-container');
+        const itinerantListContainer = document.getElementById('itinerant-list-container');
+        const salarieListContainer = document.getElementById('salarie-list-container');
+        const userListsWrapper = document.getElementById('user-lists-wrapper');
         const adminCountsContainer = document.getElementById('admin-counts-container');
         const adminUserCountsContainer = document.getElementById('admin-user-counts-container');
         
@@ -290,25 +318,19 @@
                     allUsers = [];
                     snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
                     
-                    if(!adminView.classList.contains('view-hidden')) renderUserList();
+                    if(!adminView.classList.contains('view-hidden')) renderUserLists();
 
-                    userSelect.innerHTML = '<option value="">-- Sélectionnez votre nom --</option>';
-                    if (snapshot.empty) {
-                         const option = document.createElement('option');
-                         option.textContent = "Aucun utilisateur créé";
-                         option.disabled = true;
-                         userSelect.appendChild(option);
-                    } else {
-                        allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
-                            const option = document.createElement('option');
-                            option.value = user.id;
-                            option.textContent = `${user.prenom} ${user.nom} (${user.type})`;
-                            userSelect.appendChild(option);
-                        });
-                    }
+                    // Populate login dropdowns
+                    const itinerants = allUsers.filter(u => u.type === 'itinérant' || !u.type);
+                    const salaries = allUsers.filter(u => u.type === 'salarié');
+                    
+                    populateSelect(itinerantSelect, itinerants, "itinérants");
+                    populateSelect(salarieSelect, salaries, "salariés");
+
                 }, (error) => {
                     console.error("Firestore error on users collection:", error);
-                    userSelect.innerHTML = '<option>Erreur de chargement</option>';
+                    itinerantSelect.innerHTML = '<option>Erreur</option>';
+                    salarieSelect.innerHTML = '<option>Erreur</option>';
                 });
 
                 listenToMenus();
@@ -324,6 +346,23 @@
                 });
             }
         });
+
+        const populateSelect = (selectElement, userList, typeName) => {
+            selectElement.innerHTML = `<option value="">-- Sélectionnez votre nom --</option>`;
+            if (userList.length === 0) {
+                 const option = document.createElement('option');
+                 option.textContent = `Aucun ${typeName} créé`;
+                 option.disabled = true;
+                 selectElement.appendChild(option);
+            } else {
+                userList.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.prenom} ${user.nom}`;
+                    selectElement.appendChild(option);
+                });
+            }
+        };
 
         const listenToMenus = () => {
              onSnapshot(query(getMenusCollection()), (snapshot) => {
@@ -486,7 +525,7 @@
                  renderAdminReports();
             });
 
-             renderUserList();
+             renderUserLists();
         };
 
         const renderAdminReports = () => {
@@ -506,7 +545,7 @@
                     const daySchedule = schedule[day];
                     if (daySchedule) {
                         if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) dailyCounts[day].midi++;
-                        if (user.type === 'itinérant' && (daySchedule.soir === '1' || daySchedule.soir === 'S')) dailyCounts[day].soir++;
+                        if ((user.type === 'itinérant' || !user.type) && (daySchedule.soir === '1' || daySchedule.soir === 'S')) dailyCounts[day].soir++;
                     }
                 }
             });
@@ -528,7 +567,7 @@
                         const daySchedule = userSchedule[day];
                         if (daySchedule) {
                              if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) midiCount++;
-                             if (user.type === 'itinérant' && (daySchedule.soir === '1' || daySchedule.soir === 'S')) soirCount++;
+                             if ((user.type === 'itinérant' || !user.type) && (daySchedule.soir === '1' || daySchedule.soir === 'S')) soirCount++;
                         }
                     }
                 }
@@ -538,19 +577,26 @@
             adminUserCountsContainer.innerHTML = userHtml;
         };
         
-        const renderUserList = () => {
-             let html = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Type</th><th class="p-2 border text-left">Métier/Service</th><th class="p-2 border">Actions</th></tr></thead><tbody>`;
-             allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
-                 html += `<tr data-user-row-id="${user.id}"><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border">${user.type}</td><td class="p-2 border">${user.metier}</td><td class="p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
+        const renderUserLists = () => {
+             const itinerants = allUsers.filter(u => u.type === 'itinérant' || !u.type);
+             const salaries = allUsers.filter(u => u.type === 'salarié');
+
+             itinerantListContainer.innerHTML = generateUserTable(itinerants);
+             salarieListContainer.innerHTML = generateUserTable(salaries);
+        };
+        
+        const generateUserTable = (userList) => {
+            let html = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Métier/Service</th><th class="p-2 border text-left">Chambre/Bureau</th><th class="p-2 border">Actions</th></tr></thead><tbody>`;
+             userList.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
+                 html += `<tr data-user-row-id="${user.id}"><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border">${user.metier}</td><td class="p-2 border">${user.chambre}</td><td class="p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
              });
              html += `</tbody></table>`;
-             userListContainer.innerHTML = html;
-        };
+             return html;
+        }
         
         const exportToCSV = () => {
              const year = currentDate.getFullYear();
              const month = currentDate.getMonth();
-             const { daysInMonth } = getMonthData(year, month);
              let csvContent = "data:text/csv;charset=utf-8,";
              csvContent += "Prénom,Nom,Type,Métier/Service,Chambre/Bureau,Total Midi,Total Soir\r\n";
 
@@ -559,15 +605,17 @@
                 let midiCount = 0;
                 let soirCount = 0;
                 if(userSchedule) {
-                     for(let day=1; day<=daysInMonth; day++) {
-                        const daySchedule = userSchedule[day];
-                        if(daySchedule) {
-                            if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) midiCount++;
-                            if (user.type === 'itinérant' && (daySchedule.soir === '1' || daySchedule.soir === 'S')) soirCount++;
+                     for(const day in userSchedule) {
+                        if(!isNaN(day)) {
+                            const daySchedule = userSchedule[day];
+                            if(daySchedule) {
+                                if (daySchedule.midi === '1' || ((user.type === 'itinérant' || !user.type) && daySchedule.midi === 'S')) midiCount++;
+                                if ((user.type === 'itinérant' || !user.type) && (daySchedule.soir === '1' || daySchedule.soir === 'S')) soirCount++;
+                            }
                         }
                     }
                 }
-                csvContent += `${user.prenom},${user.nom},${user.type},${user.metier},${user.chambre},${midiCount},${soirCount}\r\n`;
+                csvContent += `${user.prenom},${user.nom},${user.type || 'itinérant'},${user.metier},${user.chambre},${midiCount},${soirCount}\r\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -579,14 +627,14 @@
             document.body.removeChild(link);
         };
         
-        // --- Event Listeners ---
-        document.getElementById('login-user-btn').addEventListener('click', () => {
-            const selectedId = userSelect.value;
+        const loginUser = (selectElement) => {
+            const selectedId = selectElement.value;
             if (selectedId) {
                 selectedUserProfile = allUsers.find(u => u.id === selectedId);
                 if (selectedUserProfile) {
                     currentDate = new Date();
-                    if (selectedUserProfile.type === 'salarié') {
+                    const userType = selectedUserProfile.type || 'itinérant'; // Default to itinerant
+                    if (userType === 'salarié') {
                         showView('salarie');
                         initializeSalarieView();
                     } else {
@@ -595,7 +643,11 @@
                     }
                 }
             }
-        });
+        };
+
+        // --- Event Listeners ---
+        document.getElementById('login-itinerant-btn').addEventListener('click', () => loginUser(itinerantSelect));
+        document.getElementById('login-salarie-btn').addEventListener('click', () => loginUser(salarieSelect));
 
         document.getElementById('login-admin-btn').addEventListener('click', () => {
              if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
@@ -612,6 +664,40 @@
         document.getElementById('logout-btn').addEventListener('click', logout);
         document.getElementById('export-csv-btn').addEventListener('click', exportToCSV);
 
+        const userTypeSelect = document.getElementById('user-type');
+        const userMetierSelect = document.getElementById('user-metier');
+        const userChambreInput = document.getElementById('user-chambre');
+        const metierServiceLabel = document.getElementById('metier-service-label');
+
+        const updateUserCreationForm = () => {
+            const type = userTypeSelect.value;
+            userMetierSelect.innerHTML = '';
+            if (type === 'salarié') {
+                metierServiceLabel.textContent = 'Service';
+                userChambreInput.placeholder = "Bureau";
+                populateMetierSelect(salarieServices, "Choisir un service");
+            } else {
+                metierServiceLabel.textContent = 'Métier';
+                userChambreInput.placeholder = "N° de chambre";
+                populateMetierSelect(itinerantMetiers, "Choisir un métier");
+            }
+        };
+        
+        const populateMetierSelect = (options, placeholder) => {
+            userMetierSelect.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+            options.forEach(opt => {
+                const optionEl = document.createElement('option');
+                optionEl.value = opt;
+                optionEl.textContent = opt;
+                userMetierSelect.appendChild(optionEl);
+            });
+        };
+        
+        userTypeSelect.addEventListener('change', updateUserCreationForm);
+        // Initial call
+        updateUserCreationForm();
+
+
         document.getElementById('create-user-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const form = e.target;
@@ -625,6 +711,7 @@
                 await addDoc(getUsersCollection(), newUser);
                 document.getElementById('user-create-feedback').textContent = 'Utilisateur créé !';
                 form.reset();
+                updateUserCreationForm();
                 setTimeout(() => document.getElementById('user-create-feedback').textContent = '', 3000);
             } catch (err) { console.error(err); }
         });
@@ -688,7 +775,7 @@
             }
         });
 
-        userListContainer.addEventListener('click', async (e) => {
+        userListsWrapper.addEventListener('click', async (e) => {
             const target = e.target;
             const row = target.closest('tr');
             if (!row) return;
@@ -717,7 +804,7 @@
             }
             
             if (target.classList.contains('cancel-edit-btn')) {
-                renderUserList();
+                renderUserLists();
                 return;
             }
             
@@ -740,20 +827,22 @@
                 const userId = target.dataset.id;
                 const userToEdit = allUsers.find(u => u.id === userId);
                 if (!userToEdit) return;
-                renderUserList();
-                const rowToEdit = userListContainer.querySelector(`tr[data-user-row-id="${userId}"]`);
+                renderUserLists();
+                const rowToEdit = document.querySelector(`tr[data-user-row-id="${userId}"]`);
                 if (!rowToEdit) return;
-                
-                const metierOptions = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier', 'Administration', 'Formateur', 'Personnel de Maison'];
-                const metierSelect = metierOptions.map(m => `<option value="${m}" ${userToEdit.metier === m ? 'selected' : ''}>${m}</option>`).join('');
+
+                const userType = userToEdit.type || 'itinérant';
+                const options = userType === 'salarié' ? salarieServices : itinerantMetiers;
+                const metierSelect = options.map(m => `<option value="${m}" ${userToEdit.metier === m ? 'selected' : ''}>${m}</option>`).join('');
                 
                 const typeOptions = ['itinérant', 'salarié'];
-                const typeSelect = typeOptions.map(t => `<option value="${t}" ${userToEdit.type === t ? 'selected' : ''}>${t}</option>`).join('');
+                const typeSelect = typeOptions.map(t => `<option value="${t}" ${userType === t ? 'selected' : ''}>${t}</option>`).join('');
 
                 rowToEdit.innerHTML = `
                     <td class="p-2 border"><input class="w-full p-1 border rounded edit-prenom-input" value="${userToEdit.prenom}"><input class="w-full p-1 border rounded mt-1 edit-nom-input" value="${userToEdit.nom}"></td>
-                    <td class="p-2 border"><select class="w-full p-1 border rounded edit-type-select">${typeSelect}</select></td>
-                    <td class="p-2 border"><select class="w-full p-1 border rounded edit-metier-select">${metierSelect}</select><input class="w-full p-1 border rounded mt-1 edit-chambre-input" value="${userToEdit.chambre}"></td>
+                     <td class="p-2 border"><select class="w-full p-1 border rounded edit-type-select">${typeSelect}</select></td>
+                    <td class="p-2 border"><select class="w-full p-1 border rounded edit-metier-select">${metierSelect}</select></td>
+                    <td class="p-2 border"><input class="w-full p-1 border rounded edit-chambre-input" value="${userToEdit.chambre}"></td>
                     <td class="p-2 border text-center align-middle"><button data-id="${userId}" class="save-edit-btn text-green-600 hover:text-green-800 font-bold">OK</button><button class="cancel-edit-btn text-gray-600 hover:text-gray-800 ml-2">X</button></td>
                 `;
             }
