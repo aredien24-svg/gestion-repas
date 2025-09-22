@@ -270,6 +270,22 @@
         const getSchedulesCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'schedules');
         const getMenusCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'menus');
         
+        // --- Modal Management (FIX) ---
+        const showModal = (modalToShow) => {
+            const modals = [editUserModal, deleteConfirmModal];
+            modals.forEach(modal => {
+                // Hide all modals that are not the one we want to show
+                if (modal !== modalToShow) {
+                    modal.classList.add('view-hidden');
+                }
+            });
+
+            // Show the requested modal (if one was provided)
+            if (modalToShow) {
+                modalToShow.classList.remove('view-hidden');
+            }
+        };
+
         // --- Date Management ---
         const getMonthData = (year, month) => {
             const monthName = new Date(year, month).toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
@@ -290,10 +306,8 @@
             if (user) {
                 currentUserId = user.uid;
                 
-                // Detach any previous listener to avoid duplicates
                 if (unsubscribeUsersLoginListener) unsubscribeUsersLoginListener();
                 
-                // Attach the listener for the login dropdown. This is the main fix for the loading bug.
                 unsubscribeUsersLoginListener = onSnapshot(query(getUsersCollection()), (snapshot) => {
                     allUsers = [];
                     snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
@@ -630,18 +644,18 @@
                     editUserForm['edit-user-email'].value = userToEdit.email;
                     editUserForm['edit-user-chambre'].value = userToEdit.chambre;
                     editUserForm['edit-user-metier'].value = userToEdit.metier;
-                    editUserModal.classList.remove('view-hidden');
+                    showModal(editUserModal);
                 }
             } else if (e.target.classList.contains('delete-user-btn')) {
                 const userName = e.target.dataset.name;
                 userIdToDelete = userId;
                 document.getElementById('delete-confirm-text').textContent = `Êtes-vous sûr de vouloir supprimer ${userName} ? Cette action est irréversible.`;
-                deleteConfirmModal.classList.remove('view-hidden');
+                showModal(deleteConfirmModal);
             }
         });
         
         document.getElementById('cancel-delete-btn').addEventListener('click', () => {
-            deleteConfirmModal.classList.add('view-hidden');
+            showModal(null);
             userIdToDelete = null;
         });
 
@@ -649,7 +663,7 @@
             if (userIdToDelete) {
                 deleteDoc(doc(getUsersCollection(), userIdToDelete)).catch(err => console.error("Error deleting user:", err));
             }
-            deleteConfirmModal.classList.add('view-hidden');
+            showModal(null);
             userIdToDelete = null;
         });
 
@@ -666,12 +680,12 @@
             } catch (error) {
                 console.error("Error updating user:", error);
             } finally {
-                editUserModal.classList.add('view-hidden');
+                showModal(null);
             }
         });
 
         document.getElementById('cancel-edit-btn').addEventListener('click', () => {
-            editUserModal.classList.add('view-hidden');
+            showModal(null);
         });
 
         document.getElementById('admin-tabs').addEventListener('click', (e) => {
