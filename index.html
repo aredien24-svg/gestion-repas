@@ -25,18 +25,6 @@
         .other-month { background-color: #f9fafb; color: #d1d5db; }
         .meal-choice-btn.selected { background-color: #1e40af; color: white; font-weight: bold; }
         .admin-tab.active { border-bottom: 2px solid #ea580c; color: #1e3a8a; }
-        .modal-overlay {
-            position: fixed;
-            z-index: 50;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -149,7 +137,7 @@
                         </div>
                         <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
                             <h3 class="text-xl font-semibold mb-4">Liste des utilisateurs</h3>
-                            <div id="user-list-container" class="max-h-[30rem] overflow-y-auto transition-opacity duration-300"></div>
+                            <div id="user-list-container" class="max-h-[30rem] overflow-y-auto"></div>
                         </div>
                      </div>
                 </div>
@@ -187,41 +175,6 @@
         </main>
     </div>
 
-    <!-- Modale d'édition d'utilisateur -->
-    <div id="edit-user-modal" class="modal-overlay view-hidden">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h2 class="text-2xl font-bold mb-4">Modifier l'utilisateur</h2>
-            <form id="edit-user-form" class="space-y-4">
-                <input type="hidden" id="edit-user-id">
-                <input type="text" id="edit-user-nom" placeholder="Nom" required class="w-full p-2 border rounded">
-                <input type="text" id="edit-user-prenom" placeholder="Prénom" required class="w-full p-2 border rounded">
-                <input type="email" id="edit-user-email" placeholder="Email" required class="w-full p-2 border rounded">
-                <input type="text" id="edit-user-chambre" placeholder="N° de chambre" required class="w-full p-2 border rounded">
-                <select id="edit-user-metier" required class="w-full p-2 border rounded">
-                     <option>Menuisier</option><option>Charpentier</option><option>Maçon</option><option>Plombier</option>
-                     <option>Serrurier-Métallier</option><option>Peintre</option><option>Boulanger</option><option>Pâtissier</option>
-                </select>
-                <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" id="cancel-edit-btn" class="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300">Annuler</button>
-                    <button type="submit" class="px-4 py-2 rounded-md text-white bg-blue-800 hover:bg-blue-900">Enregistrer</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Modale de Confirmation de Suppression -->
-    <div id="delete-confirm-modal" class="modal-overlay view-hidden">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
-            <h2 class="text-xl font-bold mb-4">Confirmer la suppression</h2>
-            <p id="delete-confirm-text" class="text-gray-600 mb-6"></p>
-            <div class="flex justify-end space-x-4">
-                <button type="button" id="cancel-delete-btn" class="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300">Annuler</button>
-                <button type="button" id="confirm-delete-btn" class="px-4 py-2 rounded-md text-white bg-red-600 hover:bg-red-700">Supprimer</button>
-            </div>
-        </div>
-    </div>
-
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -254,7 +207,6 @@
         const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
         let currentDate = new Date();
         let unsubscribeUsersLoginListener = null; 
-        let userIdToDelete = null; 
 
         // --- DOM Elements ---
         const loginView = document.getElementById('login-view');
@@ -266,30 +218,14 @@
         const calendarHeader = document.getElementById('calendar-header').querySelector('h2');
         const adminHeaderDaily = document.getElementById('admin-header-daily');
         const userListContainer = document.getElementById('user-list-container');
-        const editUserModal = document.getElementById('edit-user-modal');
-        const editUserForm = document.getElementById('edit-user-form');
         const adminCountsContainer = document.getElementById('admin-counts-container');
         const adminUserCountsContainer = document.getElementById('admin-user-counts-container');
-        const deleteConfirmModal = document.getElementById('delete-confirm-modal');
         
         // --- Collections Refs (Simplified Path) ---
         const getUsersCollection = () => collection(db, 'users');
         const getSchedulesCollection = () => collection(db, 'schedules');
         const getMenusCollection = () => collection(db, 'menus');
         
-        // --- Modal Management (Definitive Fix) ---
-        const showModal = (modalToShow) => {
-            const modals = [editUserModal, deleteConfirmModal];
-            modals.forEach(modal => modal.classList.add('view-hidden'));
-
-            if (modalToShow) {
-                modalToShow.classList.remove('view-hidden');
-                userListContainer.classList.add('opacity-50', 'pointer-events-none');
-            } else {
-                userListContainer.classList.remove('opacity-50', 'pointer-events-none');
-            }
-        };
-
         // --- Date Management ---
         const getMonthData = (year, month) => {
             const monthName = new Date(year, month).toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
@@ -315,8 +251,14 @@
                 unsubscribeUsersLoginListener = onSnapshot(query(getUsersCollection()), (snapshot) => {
                     allUsers = [];
                     snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
-                    userSelect.innerHTML = '<option value="">-- Sélectionnez votre nom --</option>';
                     
+                    // Re-render user list only if admin view is active
+                    if(!adminView.classList.contains('view-hidden')) {
+                        renderUserList();
+                    }
+
+                    // Update login select dropdown
+                    userSelect.innerHTML = '<option value="">-- Sélectionnez votre nom --</option>';
                     if (snapshot.empty) {
                          const option = document.createElement('option');
                          option.textContent = "Aucun utilisateur créé";
@@ -344,22 +286,7 @@
                 signInAnonymously(auth).catch(err => {
                     console.error("Anonymous sign-in failed:", err);
                     if (err.code === 'auth/configuration-not-found') {
-                        const loginView = document.getElementById('login-view');
-                        loginView.innerHTML = `
-                             <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md text-center">
-                                <h2 class="text-2xl font-bold text-red-600 mb-4">Erreur de Configuration Firebase</h2>
-                                <p class="text-gray-700">La méthode de connexion "Anonyme" doit être activée.</p>
-                                <p class="mt-4 text-gray-600 text-sm">Pour corriger cela :</p>
-                                <ol class="text-left text-sm mt-2 list-decimal list-inside space-y-1 bg-gray-50 p-4 rounded-md">
-                                    <li>Allez sur la <a href="https://console.firebase.google.com/" target="_blank" class="text-blue-600 hover:underline">Console Firebase</a>.</li>
-                                    <li>Sélectionnez votre projet (<strong>${firebaseConfig.projectId}</strong>).</li>
-                                    <li>Dans le menu de gauche, allez à <strong>Build > Authentication</strong>.</li>
-                                    <li>Cliquez sur l'onglet <strong>Fournisseurs de connexion</strong> (ou Sign-in method).</li>
-                                    <li>Dans la liste, trouvez <strong>Anonyme</strong>, cliquez dessus et activez-le.</li>
-                                    <li>Rechargez cette page.</li>
-                                </ol>
-                            </div>
-                        `;
+                        loginView.innerHTML = `<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md text-center"><h2 class="text-2xl font-bold text-red-600 mb-4">Erreur de Configuration Firebase</h2><p class="text-gray-700">La méthode de connexion "Anonyme" doit être activée.</p><p class="mt-4 text-gray-600 text-sm">Pour corriger cela :</p><ol class="text-left text-sm mt-2 list-decimal list-inside space-y-1 bg-gray-50 p-4 rounded-md"><li>Allez sur la <a href="https://console.firebase.google.com/" target="_blank" class="text-blue-600 hover:underline">Console Firebase</a>.</li><li>Sélectionnez votre projet (<strong>${firebaseConfig.projectId}</strong>).</li><li>Allez à <strong>Build > Authentication</strong>, puis onglet <strong>Sign-in method</strong>.</li><li>Activez le fournisseur <strong>Anonyme</strong>.</li><li>Rechargez cette page.</li></ol></div>`;
                     }
                 });
             }
@@ -466,12 +393,8 @@
                  renderAdminReports();
             });
 
-            onSnapshot(query(getUsersCollection()), (snapshot) => {
-                allUsers = [];
-                snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
-                renderUserList();
-                renderAdminReports();
-            });
+            // Initial render is handled by the main onSnapshot listener
+             renderUserList();
         };
 
         const renderAdminReports = () => {
@@ -519,20 +442,11 @@
             userHtml += `</tbody></table>`;
             adminUserCountsContainer.innerHTML = userHtml;
         };
-
+        
         const renderUserList = () => {
-             let html = `<table class="w-full text-sm"><thead><tr class="bg-gray-50">
-                <th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Métier</th><th class="p-2 border">Actions</th>
-             </tr></thead><tbody>`;
+             let html = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Métier</th><th class="p-2 border text-left">Chambre</th><th class="p-2 border">Actions</th></tr></thead><tbody>`;
              allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
-                 html += `<tr>
-                    <td class="p-2 border">${user.prenom} ${user.nom}</td>
-                    <td class="p-2 border">${user.metier}</td>
-                    <td class="p-2 border text-center">
-                        <button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button>
-                        <button data-id="${user.id}" data-name="${user.prenom} ${user.nom}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button>
-                    </td>
-                 </tr>`;
+                 html += `<tr data-user-row-id="${user.id}"><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border">${user.metier}</td><td class="p-2 border">${user.chambre}</td><td class="p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" data-name="${user.prenom} ${user.nom}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
              });
              html += `</tbody></table>`;
              userListContainer.innerHTML = html;
@@ -649,63 +563,73 @@
                 updateSchedule({ midi: target.dataset.type === 'stage' ? 'S' : 'V', soir: target.dataset.type === 'stage' ? 'S' : 'V' });
             }
         });
-
-        userListContainer.addEventListener('click', (e) => {
-            const userId = e.target.dataset.id;
-            if (!userId) return;
-
-            if (e.target.classList.contains('edit-user-btn')) {
-                const userToEdit = allUsers.find(u => u.id === userId);
-                if (userToEdit) {
-                    editUserForm['edit-user-id'].value = userToEdit.id;
-                    editUserForm['edit-user-nom'].value = userToEdit.nom;
-                    editUserForm['edit-user-prenom'].value = userToEdit.prenom;
-                    editUserForm['edit-user-email'].value = userToEdit.email;
-                    editUserForm['edit-user-chambre'].value = userToEdit.chambre;
-                    editUserForm['edit-user-metier'].value = userToEdit.metier;
-                    showModal(editUserModal);
-                }
-            } else if (e.target.classList.contains('delete-user-btn')) {
-                const userName = e.target.dataset.name;
-                userIdToDelete = userId;
-                document.getElementById('delete-confirm-text').textContent = `Êtes-vous sûr de vouloir supprimer ${userName} ? Cette action est irréversible.`;
-                showModal(deleteConfirmModal);
-            }
-        });
         
-        document.getElementById('cancel-delete-btn').addEventListener('click', () => {
-            showModal(null);
-            userIdToDelete = null;
-        });
+        userListContainer.addEventListener('click', async (e) => {
+            const target = e.target;
+            const row = target.closest('tr');
+            if (!row) return;
 
-        document.getElementById('confirm-delete-btn').addEventListener('click', () => {
-            if (userIdToDelete) {
-                deleteDoc(doc(getUsersCollection(), userIdToDelete)).catch(err => console.error("Error deleting user:", err));
+            if (target.classList.contains('delete-user-btn')) {
+                const userId = target.dataset.id;
+                if (!target.classList.contains('confirm-delete')) {
+                    document.querySelectorAll('.confirm-delete').forEach(btn => {
+                        btn.textContent = 'Suppr.';
+                        btn.classList.remove('confirm-delete', 'bg-red-500', 'text-white', 'rounded', 'px-2', 'py-1');
+                    });
+                    target.textContent = 'Confirmer ?';
+                    target.classList.add('confirm-delete', 'bg-red-500', 'text-white', 'rounded', 'px-2', 'py-1');
+                    setTimeout(() => {
+                        if (target && target.classList.contains('confirm-delete')) {
+                            target.textContent = 'Suppr.';
+                            target.classList.remove('confirm-delete', 'bg-red-500', 'text-white', 'rounded', 'px-2', 'py-1');
+                        }
+                    }, 3000);
+                } else {
+                    try {
+                        await deleteDoc(doc(getUsersCollection(), userId));
+                    } catch (error) { console.error("Error deleting user:", error); }
+                }
+                return;
             }
-            showModal(null);
-            userIdToDelete = null;
-        });
+            
+            if (target.classList.contains('cancel-edit-btn')) {
+                renderUserList();
+                return;
+            }
+            
+            if (target.classList.contains('save-edit-btn')) {
+                const userId = target.dataset.id;
+                try {
+                    const updatedData = {
+                        nom: row.querySelector('.edit-nom-input').value,
+                        prenom: row.querySelector('.edit-prenom-input').value,
+                        email: row.querySelector('.edit-email-input').value,
+                        chambre: row.querySelector('.edit-chambre-input').value,
+                        metier: row.querySelector('.edit-metier-select').value,
+                    };
+                    await updateDoc(doc(getUsersCollection(), userId), updatedData);
+                } catch (error) { console.error("Error updating user:", error); }
+                return;
+            }
 
-        editUserForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const userId = editUserForm['edit-user-id'].value;
-            try {
-                const updatedData = {
-                    nom: editUserForm['edit-user-nom'].value, prenom: editUserForm['edit-user-prenom'].value,
-                    email: editUserForm['edit-user-email'].value, chambre: editUserForm['edit-user-chambre'].value,
-                    metier: editUserForm['edit-user-metier'].value,
-                };
-                await updateDoc(doc(getUsersCollection(), userId), updatedData);
-            } catch (error) {
-                console.error("Error updating user:", error);
-            } finally {
-                showModal(null);
+            if (target.classList.contains('edit-user-btn')) {
+                const userId = target.dataset.id;
+                const userToEdit = allUsers.find(u => u.id === userId);
+                if (!userToEdit) return;
+                renderUserList();
+                const rowToEdit = userListContainer.querySelector(`tr[data-user-row-id="${userId}"]`);
+                if (!rowToEdit) return;
+                const metierOptions = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier'];
+                const selectOptions = metierOptions.map(m => `<option value="${m}" ${userToEdit.metier === m ? 'selected' : ''}>${m}</option>`).join('');
+                rowToEdit.innerHTML = `
+                    <td class="p-2 border"><input class="w-full p-1 border rounded edit-prenom-input" value="${userToEdit.prenom}" placeholder="Prénom"><input class="w-full p-1 border rounded mt-1 edit-nom-input" value="${userToEdit.nom}" placeholder="Nom"></td>
+                    <td class="p-2 border"><select class="w-full p-1 border rounded edit-metier-select">${selectOptions}</select></td>
+                    <td class="p-2 border"><input class="w-full p-1 border rounded edit-chambre-input" value="${userToEdit.chambre}" placeholder="Chambre"></td>
+                    <td class="p-2 border text-center align-middle"><button data-id="${userId}" class="save-edit-btn text-green-600 hover:text-green-800 font-bold">OK</button><button class="cancel-edit-btn text-gray-600 hover:text-gray-800 ml-2">X</button></td>
+                `;
             }
         });
 
-        document.getElementById('cancel-edit-btn').addEventListener('click', () => {
-            showModal(null);
-        });
 
         document.getElementById('admin-tabs').addEventListener('click', (e) => {
             if (e.target.matches('.admin-tab')) {
@@ -737,22 +661,4 @@
     </script>
 </body>
 </html>
-```
-
-### Étape 2 : Mettre à jour les règles de sécurité
-
-1.  Retournez dans la **Console Firebase**, section **Build > Firestore Database**.
-2.  Allez dans l'onglet "**Règles**".
-3.  Remplacez tout le contenu par les règles suivantes, puis cliquez sur **Publier**.
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Allow read and write access to all collections for authenticated users
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
 
