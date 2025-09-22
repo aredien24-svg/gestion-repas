@@ -228,9 +228,17 @@
         import { getFirestore, collection, doc, setDoc, onSnapshot, query, where, getDocs, addDoc, serverTimestamp, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Config ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "DEMO", authDomain: "DEMO", projectId: "DEMO" };
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : undefined;
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQrYxzDJiSaX6fAzFCHRsMjOmznXQ1KSo",
+            authDomain: "gestion-repas-compagnons.firebaseapp.com",
+            projectId: "gestion-repas-compagnons",
+            storageBucket: "gestion-repas-compagnons.appspot.com",
+            messagingSenderId: "74457969505",
+            appId: "1:74457969505:web:edc6bbb1a0332ca9ddcb20",
+            measurementId: "G-4KYNTJNL3T"
+        };
+        
+        const appId = firebaseConfig.projectId; // Use projectId as a unique identifier
         const ADMIN_PASSWORD = "admin";
 
         // --- Firebase ---
@@ -277,10 +285,8 @@
 
             if (modalToShow) {
                 modalToShow.classList.remove('view-hidden');
-                // Visually and functionally disable the background list
                 userListContainer.classList.add('opacity-50', 'pointer-events-none');
             } else {
-                // Re-enable the background list
                 userListContainer.classList.remove('opacity-50', 'pointer-events-none');
             }
         };
@@ -336,12 +342,27 @@
                     showView('login');
                 }
             } else {
-                if (unsubscribeUsersLoginListener) {
-                    unsubscribeUsersLoginListener();
-                    unsubscribeUsersLoginListener = null;
-                }
-                if (initialAuthToken) { signInWithCustomToken(auth, initialAuthToken).catch(err => console.error(err)); } 
-                else { signInAnonymously(auth).catch(err => console.error(err)); }
+                signInAnonymously(auth).catch(err => {
+                    console.error("Anonymous sign-in failed:", err);
+                    if (err.code === 'auth/configuration-not-found') {
+                        const loginView = document.getElementById('login-view');
+                        loginView.innerHTML = `
+                             <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md text-center">
+                                <h2 class="text-2xl font-bold text-red-600 mb-4">Erreur de Configuration Firebase</h2>
+                                <p class="text-gray-700">La méthode de connexion "Anonyme" doit être activée.</p>
+                                <p class="mt-4 text-gray-600 text-sm">Pour corriger cela :</p>
+                                <ol class="text-left text-sm mt-2 list-decimal list-inside space-y-1 bg-gray-50 p-4 rounded-md">
+                                    <li>Allez sur la <a href="https://console.firebase.google.com/" target="_blank" class="text-blue-600 hover:underline">Console Firebase</a>.</li>
+                                    <li>Sélectionnez votre projet (<strong>${firebaseConfig.projectId}</strong>).</li>
+                                    <li>Dans le menu de gauche, allez à <strong>Build > Authentication</strong>.</li>
+                                    <li>Cliquez sur l'onglet <strong>Fournisseurs de connexion</strong> (ou Sign-in method).</li>
+                                    <li>Dans la liste, trouvez <strong>Anonyme</strong>, cliquez dessus et activez-le.</li>
+                                    <li>Rechargez cette page.</li>
+                                </ol>
+                            </div>
+                        `;
+                    }
+                });
             }
         });
 
