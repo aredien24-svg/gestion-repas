@@ -2,155 +2,175 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des utilisateurs</title>
+    <title>Planning Repas</title>
     <style>
         body { font-family: Arial, sans-serif; }
-        .user-item { display: flex; justify-content: space-between; margin: 5px 0; }
-        .modal.view-hidden { display: none; }
-        .modal {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: #fff; padding: 20px; border: 1px solid #ccc;
-            z-index: 1000;
-        }
-        .modal h3 { margin-top: 0; }
-        .modal input { display: block; width: 100%; margin: 5px 0; padding: 5px; }
-        .modal button { margin: 5px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        .btn { padding: 5px 10px; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                 background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background-color: #fff; padding: 20px; border-radius: 5px; width: 500px; }
     </style>
 </head>
 <body>
 
-    <h1>Gestion des utilisateurs</h1>
-    <div id="user-list"></div>
+<h1>Planning des repas</h1>
 
-    <!-- MODALE EDITION -->
-    <div id="edit-user-modal" class="modal view-hidden">
-        <h3>Modifier un utilisateur</h3>
-        <form id="edit-user-form">
-            <input type="hidden" id="edit-user-id">
-            <input type="text" id="edit-user-nom" placeholder="Nom" required>
-            <input type="text" id="edit-user-prenom" placeholder="Prénom" required>
-            <input type="email" id="edit-user-email" placeholder="Email" required>
-            <input type="text" id="edit-user-chambre" placeholder="Chambre" required>
-            <input type="text" id="edit-user-metier" placeholder="Métier" required>
-            <button type="submit">Enregistrer</button>
-            <button type="button" id="cancel-edit-btn">Annuler</button>
-        </form>
+<!-- Formulaire création planning -->
+<div>
+    <h2>Créer un planning</h2>
+    <label>Mois: <input type="number" id="month" min="1" max="12"></label>
+    <label>Année: <input type="number" id="year" min="2024" max="2100"></label>
+    <button class="btn" onclick="createPlanning()">Créer</button>
+</div>
+
+<!-- Table des plannings -->
+<h2>Plannings existants</h2>
+<table id="planningTable">
+    <thead>
+        <tr>
+            <th>Mois</th>
+            <th>Année</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Les plannings seront insérés ici -->
+    </tbody>
+</table>
+
+<!-- Modal de détail planning -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <h3>Détail du planning</h3>
+        <table id="detailTable">
+            <thead>
+                <tr>
+                    <th>Jour</th>
+                    <th>Midi</th>
+                    <th>Soir</th>
+                    <th>Stage</th>
+                    <th>Vacances</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Les jours seront générés ici -->
+            </tbody>
+        </table>
+        <button class="btn" onclick="closeModal()">Fermer</button>
     </div>
+</div>
 
-    <!-- MODALE SUPPRESSION -->
-    <div id="delete-confirm-modal" class="modal view-hidden">
-        <h3>Supprimer un utilisateur</h3>
-        <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
-        <button id="confirm-delete-btn">Supprimer</button>
-        <button id="cancel-delete-btn">Annuler</button>
-    </div>
+<script>
+let plannings = []; // Contiendra les plannings créés
+let currentPlanningIndex = null;
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+// Création d'un planning
+function createPlanning() {
+    const month = parseInt(document.getElementById('month').value);
+    const year = parseInt(document.getElementById('year').value);
+    if (!month || !year) {
+        alert("Veuillez remplir mois et année.");
+        return;
+    }
 
-        // Config Firebase
-        const firebaseConfig = {
-            apiKey: "TON_API_KEY",
-            authDomain: "TON_PROJET.firebaseapp.com",
-            projectId: "TON_PROJET",
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const newPlanning = { month, year, days: [] };
+    const daysInMonth = new Date(year, month, 0).getDate();
 
-        // Références DOM
-        const userList = document.getElementById('user-list');
-        const editUserModal = document.getElementById('edit-user-modal');
-        const deleteConfirmModal = document.getElementById('delete-confirm-modal');
-        const editUserForm = document.getElementById('edit-user-form');
-        const cancelEditBtn = document.getElementById('cancel-edit-btn');
-        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-
-        let userIdToDelete = null;
-
-        // Affichage / masquage modales
-        const showModal = (modal) => {
-            [editUserModal, deleteConfirmModal].forEach(m => m.classList.add('view-hidden'));
-            modal.classList.remove('view-hidden');
-        };
-        const closeModal = () => {
-            [editUserModal, deleteConfirmModal].forEach(m => m.classList.add('view-hidden'));
-        };
-
-        cancelEditBtn.addEventListener('click', closeModal);
-        cancelDeleteBtn.addEventListener('click', closeModal);
-
-        // Ouvrir modale édition
-        function openEditUser(user) {
-            document.getElementById('edit-user-id').value = user.id;
-            document.getElementById('edit-user-nom').value = user.nom;
-            document.getElementById('edit-user-prenom').value = user.prenom;
-            document.getElementById('edit-user-email').value = user.email;
-            document.getElementById('edit-user-chambre').value = user.chambre;
-            document.getElementById('edit-user-metier').value = user.metier;
-            showModal(editUserModal);
-        }
-
-        // Ouvrir modale suppression
-        function openDeleteUser(userId) {
-            userIdToDelete = userId;
-            showModal(deleteConfirmModal);
-        }
-
-        // Formulaire édition
-        editUserForm.onsubmit = async (e) => {
-            e.preventDefault();
-            const userId = document.getElementById('edit-user-id').value;
-            const userRef = doc(db, "users", userId);
-            await updateDoc(userRef, {
-                nom: document.getElementById('edit-user-nom').value,
-                prenom: document.getElementById('edit-user-prenom').value,
-                email: document.getElementById('edit-user-email').value,
-                chambre: document.getElementById('edit-user-chambre').value,
-                metier: document.getElementById('edit-user-metier').value,
-            });
-            closeModal();
-            renderUserList();
-        };
-
-        // Suppression utilisateur
-        confirmDeleteBtn.addEventListener('click', async () => {
-            if (userIdToDelete) {
-                await deleteDoc(doc(db, "users", userIdToDelete));
-                userIdToDelete = null;
-                closeModal();
-                renderUserList();
-            }
+    for (let i = 1; i <= daysInMonth; i++) {
+        newPlanning.days.push({
+            day: i,
+            midi: false,
+            soir: false,
+            stage: false,
+            vacances: false
         });
+    }
 
-        // Affichage liste utilisateurs
-        async function renderUserList() {
-            userList.innerHTML = "";
-            const querySnapshot = await getDocs(collection(db, "users"));
-            querySnapshot.forEach((docSnap) => {
-                const user = { id: docSnap.id, ...docSnap.data() };
-                const div = document.createElement('div');
-                div.className = "user-item";
-                div.innerHTML = `
-                    <span>${user.nom} ${user.prenom} - ${user.email} - Chambre: ${user.chambre} - Métier: ${user.metier}</span>
-                    <span>
-                        <button class="edit-btn">Modifier</button>
-                        <button class="delete-btn">Supprimer</button>
-                    </span>
-                `;
-                div.querySelector('.edit-btn').addEventListener('click', () => openEditUser(user));
-                div.querySelector('.delete-btn').addEventListener('click', () => openDeleteUser(user.id));
-                userList.appendChild(div);
-            });
-        }
+    plannings.push(newPlanning);
+    renderPlannings();
+}
 
-        // Initialisation
-        renderUserList();
-    </script>
+// Affichage des plannings
+function renderPlannings() {
+    const tbody = document.querySelector("#planningTable tbody");
+    tbody.innerHTML = "";
+    plannings.forEach((planning, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${planning.month}</td>
+            <td>${planning.year}</td>
+            <td>
+                <button class="btn" onclick="openModal(${index})">Voir / Modifier</button>
+                <button class="btn" onclick="deletePlanning(${index})">Supprimer</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Supprimer un planning
+function deletePlanning(index) {
+    if (confirm("Voulez-vous vraiment supprimer ce planning ?")) {
+        plannings.splice(index, 1);
+        renderPlannings();
+    }
+}
+
+// Ouvrir modal
+function openModal(index) {
+    currentPlanningIndex = index;
+    renderAdminReports();
+    document.getElementById('modal').style.display = "flex";
+}
+
+// Fermer modal
+function closeModal() {
+    document.getElementById('modal').style.display = "none";
+}
+// Affichage du détail du planning dans le modal
+function renderAdminReports() {
+    const tbody = document.querySelector("#detailTable tbody");
+    tbody.innerHTML = "";
+
+    const planning = plannings[currentPlanningIndex];
+    planning.days.forEach((day, i) => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${day.day}</td>
+            <td><input type="checkbox" ${day.midi ? "checked" : ""} onclick="toggleDay(${i}, 'midi')"></td>
+            <td><input type="checkbox" ${day.soir ? "checked" : ""} onclick="toggleDay(${i}, 'soir')"></td>
+            <td><input type="checkbox" ${day.stage ? "checked" : ""} onclick="toggleDay(${i}, 'stage')"></td>
+            <td><input type="checkbox" ${day.vacances ? "checked" : ""} onclick="toggleDay(${i}, 'vacances')"></td>
+        `;
+
+        tbody.appendChild(tr);
+    });
+}
+
+// Modifier un jour
+function toggleDay(dayIndex, type) {
+    const planning = plannings[currentPlanningIndex];
+    planning.days[dayIndex][type] = !planning.days[dayIndex][type];
+}
+
+// Fermer modal et re-rendre les plannings (si nécessaire)
+function closeModal() {
+    document.getElementById('modal').style.display = "none";
+    renderPlannings();
+}
+
+// Fermer modal si clic à l'extérieur
+window.onclick = function(event) {
+    const modal = document.getElementById('modal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+</script>
 
 </body>
 </html>
