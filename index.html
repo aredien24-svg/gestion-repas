@@ -749,12 +749,24 @@
             if (selectedId) {
                 selectedUserProfile = allUsers.find(u => u.id === selectedId);
                 if (selectedUserProfile) {
-                    currentDate = new Date();
                     const userType = selectedUserProfile.type || 'itinérant';
                     if (userType === 'salarié') {
+                         const today = new Date();
+                        today.setHours(0,0,0,0);
+                        const thisMonday = new Date(today);
+                        thisMonday.setDate(today.getDate() - (today.getDay() + 6) % 7);
+                        let monitoredWeekMonday;
+                        const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+                        if (dayOfWeek >= 5) { 
+                             monitoredWeekMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 21));
+                        } else { 
+                             monitoredWeekMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 14));
+                        }
+                        currentDate = monitoredWeekMonday;
                         showView('salarie');
                         initializeSalarieView();
                     } else {
+                        currentDate = new Date();
                         showView('itinerant');
                         initializeItinerantView();
                     }
