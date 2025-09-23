@@ -15,12 +15,9 @@
         .calendar-table { border-collapse: collapse; width: 100%; }
         .calendar-table th, .calendar-table td {
             border: 1px solid #e5e7eb;
-            padding: 8px;
             text-align: left;
             vertical-align: top;
         }
-        .itinerant-day { height: 140px; }
-        .salarie-day { height: 80px; }
         .calendar-table th { text-align: center; background-color: #f9fafb; }
         .calendar-day-number { font-weight: bold; font-size: 1.1rem; }
         .other-month { background-color: #f9fafb; color: #d1d5db; }
@@ -33,38 +30,39 @@
 </head>
 <body class="text-gray-800">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+    <div class="container mx-auto p-2 sm:p-4 md:p-6 max-w-7xl">
 
         <!-- En-tête -->
-        <header class="bg-white shadow-md rounded-lg p-4 mb-8">
+        <header class="bg-white shadow-md rounded-lg p-4 mb-6">
             <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="flex items-center space-x-4">
-                    <img src="https://www.compagnons-du-devoir.com/sites/default/files/logo_cddt_0.png" alt="Logo Compagnons du Devoir" class="h-16">
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <img src="https://www.compagnons-du-devoir.com/sites/default/files/logo_cddt_0.png" alt="Logo Compagnons du Devoir" class="h-12 sm:h-16">
                     <div class="text-center md:text-left">
-                        <h1 class="text-3xl font-bold text-blue-800">Gestion des Repas</h1>
-                        <p class="text-gray-500 mt-1">Application de la Maison de La Rochelle</p>
+                        <h1 class="text-xl sm:text-3xl font-bold text-blue-800">Gestion des Repas</h1>
+                        <p class="text-gray-500 mt-1 text-sm sm:text-base">Maison de La Rochelle</p>
                     </div>
                 </div>
-                <div id="header-controls" class="flex items-center space-x-4 mt-4 md:mt-0 view-hidden">
-                     <span id="user-id-display" class="text-sm text-gray-500 bg-gray-200 px-3 py-1 rounded-full"></span>
-                     <button id="logout-btn" class="px-4 py-2 text-sm font-medium bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none">Déconnexion</button>
+                <div id="header-controls" class="flex items-center space-x-2 sm:space-x-4 mt-4 md:mt-0 view-hidden">
+                     <span id="user-id-display" class="text-xs sm:text-sm text-gray-500 bg-gray-200 px-3 py-1 rounded-full"></span>
+                     <button id="logout-btn" class="px-3 sm:px-4 py-2 text-sm font-medium bg-orange-500 text-white rounded-md hover:bg-orange-600 focus:outline-none">Déconnexion</button>
                 </div>
             </div>
         </header>
 
         <!-- Vue de Connexion -->
         <main id="login-view">
-             <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+             <div class="max-w-md mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-md">
                 <h2 class="text-2xl font-bold text-center text-blue-800 mb-6">Identifiez-vous</h2>
                 
                 <!-- Section Itinérant -->
-                <div class="space-y-4 border-b pb-4 mb-4">
+                <div class="space-y-2 border-b pb-4 mb-4">
                     <h3 class="text-lg font-semibold text-gray-700">Accès Itinérant</h3>
                     <div>
-                        <label for="itinerant-select" class="block text-sm font-medium text-gray-700">Choisissez votre profil</label>
-                        <select id="itinerant-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option>Chargement...</option>
-                        </select>
+                        <label for="itinerant-search" class="block text-sm font-medium text-gray-700">Recherchez votre nom</label>
+                        <div class="relative mt-1">
+                            <input type="text" id="itinerant-search" autocomplete="off" class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" placeholder="Commencez à taper votre nom...">
+                            <div id="itinerant-results" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-48 overflow-y-auto view-hidden"></div>
+                        </div>
                     </div>
                     <button id="login-itinerant-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-900">
                         Accéder
@@ -72,13 +70,14 @@
                 </div>
     
                 <!-- Section Salarié -->
-                <div class="space-y-4">
+                <div class="space-y-2">
                     <h3 class="text-lg font-semibold text-gray-700">Accès Salarié</h3>
                     <div>
-                        <label for="salarie-select" class="block text-sm font-medium text-gray-700">Choisissez votre profil</label>
-                        <select id="salarie-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option>Chargement...</option>
-                        </select>
+                        <label for="salarie-search" class="block text-sm font-medium text-gray-700">Recherchez votre nom</label>
+                        <div class="relative mt-1">
+                            <input type="text" id="salarie-search" autocomplete="off" class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" placeholder="Commencez à taper votre nom...">
+                            <div id="salarie-results" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-48 overflow-y-auto view-hidden"></div>
+                        </div>
                     </div>
                     <button id="login-salarie-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-900">
                         Accéder
@@ -98,10 +97,10 @@
 
         <!-- Vue Itinérant -->
         <main id="itinerant-view" class="view-hidden">
-            <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
                 <div id="itinerant-calendar-header" class="flex justify-between items-center text-center mb-4">
                     <button id="itinerant-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
-                    <h2 class="text-2xl font-semibold"></h2>
+                    <h2 class="text-xl sm:text-2xl font-semibold"></h2>
                     <button id="itinerant-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
                 </div>
                 <div id="itinerant-calendar-container" class="overflow-x-auto"></div>
@@ -110,13 +109,13 @@
 
         <!-- Vue Salarié -->
         <main id="salarie-view" class="view-hidden">
-            <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
                 <div class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
                     <p>Vous pouvez modifier votre présence pour une semaine jusqu'au <strong>jeudi de l'avant-dernière semaine</strong>. Ex: la semaine du 20 au 24 est modifiable jusqu'au jeudi 9 au soir. Les jours verrouillés sont grisés.</p>
                 </div>
                 <div id="salarie-calendar-header" class="flex justify-between items-center text-center mb-4">
                     <button id="salarie-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
-                    <h2 class="text-2xl font-semibold"></h2>
+                    <h2 class="text-xl sm:text-2xl font-semibold"></h2>
                     <button id="salarie-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
                 </div>
                 <div id="salarie-calendar-container" class="overflow-x-auto"></div>
@@ -125,28 +124,71 @@
 
         <!-- Vue Administrateur -->
         <main id="admin-view" class="view-hidden">
-            <div class="mb-4 border-b border-gray-200">
-                <nav id="admin-tabs" class="flex space-x-8" aria-label="Tabs">
-                    <button class="admin-tab active" data-tab="reports">Rapports & Décomptes</button>
-                    <button class="admin-tab" data-tab="users">Gestion Utilisateurs</button>
-                    <button class="admin-tab" data-tab="menus">Gestion Menus</button>
-                </nav>
+            <div class="relative w-full mb-4 border-b border-gray-200">
+                <div class="overflow-x-auto pb-2">
+                    <nav id="admin-tabs" class="flex space-x-4 sm:space-x-8 whitespace-nowrap" aria-label="Tabs">
+                        <button class="admin-tab active py-2 px-1 text-sm sm:text-base" data-tab="dashboard">Tableau de Bord</button>
+                        <button class="admin-tab py-2 px-1 text-sm sm:text-base" data-tab="reports">Rapports</button>
+                        <button class="admin-tab py-2 px-1 text-sm sm:text-base" data-tab="users">Utilisateurs</button>
+                        <button class="admin-tab py-2 px-1 text-sm sm:text-base" data-tab="suivi">Suivi Salariés</button>
+                        <button class="admin-tab py-2 px-1 text-sm sm:text-base" data-tab="menus">Menus</button>
+                    </nav>
+                </div>
             </div>
 
             <div id="admin-tab-content">
+                <!-- Tableau de Bord -->
+                <div id="tab-dashboard">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <!-- Repas pour demain -->
+                        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Repas pour Demain</h3>
+                            <p id="dashboard-tomorrow-date" class="text-sm text-gray-500 mb-4"></p>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Déjeuners :</span>
+                                    <span id="dashboard-lunch-count" class="text-2xl font-bold text-blue-800">...</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="font-medium">Dîners :</span>
+                                    <span id="dashboard-dinner-count" class="text-2xl font-bold text-blue-800">...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Suivi Salariés -->
+                        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Suivi Salariés</h3>
+                            <p id="dashboard-suivi-week" class="text-sm text-gray-500 mb-4"></p>
+                             <div class="flex justify-between items-center">
+                                <span class="font-medium">Saisies incomplètes :</span>
+                                <span id="dashboard-suivi-incomplete" class="text-2xl font-bold text-red-600">...</span>
+                            </div>
+                            <button id="dashboard-goto-suivi" class="mt-4 w-full text-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-900">Voir le détail</button>
+                        </div>
+                        <!-- Raccourcis -->
+                        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                            <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Raccourcis</h3>
+                            <div class="mt-4 space-y-3">
+                                <button id="dashboard-goto-users" class="w-full text-left py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-md">Gérer les utilisateurs</button>
+                                <button id="dashboard-goto-menus" class="w-full text-left py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-md">Gérer les menus</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Rapports -->
-                <div id="tab-reports">
+                <div id="tab-reports" class="view-hidden">
                      <div class="flex justify-between items-center text-center mb-4 bg-white p-4 rounded-lg shadow">
                          <button id="admin-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
-                         <h3 class="text-xl font-semibold" id="admin-header-daily">Décompte journalier</h3>
+                         <h3 class="text-lg sm:text-xl font-semibold" id="admin-header-daily">Décompte journalier</h3>
                          <button id="admin-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
                      </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-white p-6 rounded-lg shadow-md"><div id="admin-counts-container"></div></div>
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-xl font-semibold">Décompte par Utilisateur</h3>
-                                <button id="export-csv-btn" class="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700">Exporter (CSV)</button>
+                        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto"><div id="admin-counts-container"></div></div>
+                        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4">
+                                <h3 class="text-lg sm:text-xl font-semibold">Décompte par Utilisateur</h3>
+                                <button id="export-csv-btn" class="mt-2 sm:mt-0 px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700">Exporter (CSV)</button>
                             </div>
                             <div id="admin-user-counts-container" class="max-h-96 overflow-y-auto"></div>
                         </div>
@@ -174,21 +216,36 @@
                                     <label id="metier-service-label" for="user-metier" class="block text-sm font-medium text-gray-700">Métier</label>
                                      <select id="user-metier" required class="w-full p-2 border rounded mt-1"></select>
                                 </div>
+                                 <div class="flex items-center">
+                                    <input id="user-vegetarien" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <label for="user-vegetarien" class="ml-2 block text-sm text-gray-900">Végétarien</label>
+                                </div>
                                 <button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">Créer</button>
                                 <p id="user-create-feedback" class="text-green-600 text-sm"></p>
                             </form>
                         </div>
                         <div id="user-lists-wrapper" class="lg:col-span-2 space-y-8">
-                            <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
                                 <h3 class="text-xl font-semibold mb-4">Liste des Itinérants</h3>
-                                <div id="itinerant-list-container" class="max-h-[30rem] overflow-y-auto"></div>
+                                <div id="itinerant-list-container" class="overflow-x-auto"></div>
                             </div>
-                            <div class="bg-white p-6 rounded-lg shadow-md">
+                            <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
                                 <h3 class="text-xl font-semibold mb-4">Liste des Salariés</h3>
-                                <div id="salarie-list-container" class="max-h-[30rem] overflow-y-auto"></div>
+                                <div id="salarie-list-container" class="overflow-x-auto"></div>
                             </div>
                         </div>
                      </div>
+                </div>
+                 
+                <!-- Suivi Salariés -->
+                <div id="tab-suivi" class="view-hidden">
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto">
+                        <div class="mb-4">
+                            <h3 class="text-xl font-semibold">Suivi de la saisie des salariés</h3>
+                            <p id="suivi-week-label" class="text-gray-600 text-sm mt-1"></p>
+                        </div>
+                        <div id="suivi-container"></div>
+                    </div>
                 </div>
 
                 <!-- Gestion Menus -->
@@ -256,6 +313,8 @@
         const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
         let currentDate = new Date();
         let unsubscribeUsersLoginListener = null;
+        let selectedItinerantId = null;
+        let selectedSalarieId = null;
         
         const itinerantMetiers = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier'];
         const salarieServices = ['Développement', 'Administratif', 'Production', 'Financier'];
@@ -266,8 +325,10 @@
         const salarieView = document.getElementById('salarie-view');
         const adminView = document.getElementById('admin-view');
         const headerControls = document.getElementById('header-controls');
-        const itinerantSelect = document.getElementById('itinerant-select');
-        const salarieSelect = document.getElementById('salarie-select');
+        const itinerantSearchInput = document.getElementById('itinerant-search');
+        const salarieSearchInput = document.getElementById('salarie-search');
+        const itinerantResultsContainer = document.getElementById('itinerant-results');
+        const salarieResultsContainer = document.getElementById('salarie-results');
         const itinerantCalendarContainer = document.getElementById('itinerant-calendar-container');
         const itinerantCalendarHeader = document.getElementById('itinerant-calendar-header').querySelector('h2');
         const salarieCalendarContainer = document.getElementById('salarie-calendar-container');
@@ -278,6 +339,8 @@
         const userListsWrapper = document.getElementById('user-lists-wrapper');
         const adminCountsContainer = document.getElementById('admin-counts-container');
         const adminUserCountsContainer = document.getElementById('admin-user-counts-container');
+        const suiviContainer = document.getElementById('suivi-container');
+        const suiviWeekLabel = document.getElementById('suivi-week-label');
         
         // --- Collections Refs (Simplified Path) ---
         const getUsersCollection = () => collection(db, 'users');
@@ -295,21 +358,12 @@
         const getDeadline = (targetDate) => {
             const date = new Date(targetDate.getTime());
             date.setHours(0, 0, 0, 0);
-
-            // 1. Find the Monday of the target week.
-            // getDay() is 0 for Sun, 1 for Mon... We want Monday to be day 1.
             const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay(); 
             const dateOfMonday = date.getDate() - dayOfWeek + 1;
             const mondayOfTargetWeek = new Date(date.setDate(dateOfMonday));
-            
-            // 2. The deadline is the Thursday two weeks before. 
-            // This is equivalent to 11 days before the Monday of the target week.
             const deadline = new Date(mondayOfTargetWeek);
             deadline.setDate(mondayOfTargetWeek.getDate() - 11);
-            
-            // Set the time to the end of the day.
             deadline.setHours(23, 59, 59, 999);
-
             return deadline;
         };
 
@@ -339,19 +393,20 @@
                     allUsers = [];
                     snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
                     
-                    if(!adminView.classList.contains('view-hidden')) renderUserLists();
+                    if(!adminView.classList.contains('view-hidden')) {
+                        renderUserLists();
+                        initializeDashboard();
+                        initializeSuiviView();
+                    }
 
-                    // Populate login dropdowns
                     const itinerants = allUsers.filter(u => u.type === 'itinérant' || !u.type);
                     const salaries = allUsers.filter(u => u.type === 'salarié');
                     
-                    populateSelect(itinerantSelect, itinerants, "itinérants");
-                    populateSelect(salarieSelect, salaries, "salariés");
+                    setupSearch(itinerantSearchInput, itinerantResultsContainer, itinerants, (userId) => { selectedItinerantId = userId; });
+                    setupSearch(salarieSearchInput, salarieResultsContainer, salaries, (userId) => { selectedSalarieId = userId; });
 
                 }, (error) => {
                     console.error("Firestore error on users collection:", error);
-                    itinerantSelect.innerHTML = '<option>Erreur</option>';
-                    salarieSelect.innerHTML = '<option>Erreur</option>';
                 });
 
                 listenToMenus();
@@ -368,21 +423,41 @@
             }
         });
 
-        const populateSelect = (selectElement, userList, typeName) => {
-            selectElement.innerHTML = `<option value="">-- Sélectionnez votre nom --</option>`;
-            if (userList.length === 0) {
-                 const option = document.createElement('option');
-                 option.textContent = `Aucun ${typeName} créé`;
-                 option.disabled = true;
-                 selectElement.appendChild(option);
-            } else {
-                userList.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.id;
-                    option.textContent = `${user.prenom} ${user.nom}`;
-                    selectElement.appendChild(option);
-                });
-            }
+        const setupSearch = (inputElement, resultsContainer, userList, onSelectCallback) => {
+            inputElement.addEventListener('input', () => {
+                onSelectCallback(null);
+                const searchTerm = inputElement.value.toLowerCase();
+                if (searchTerm.length < 1) {
+                    resultsContainer.innerHTML = '';
+                    resultsContainer.classList.add('view-hidden');
+                    return;
+                }
+                const filteredUsers = userList.filter(user => `${user.prenom} ${user.nom}`.toLowerCase().includes(searchTerm));
+                if (filteredUsers.length > 0) {
+                    resultsContainer.innerHTML = filteredUsers.map(user => `<div class="p-2 cursor-pointer hover:bg-gray-100" data-id="${user.id}" data-name="${user.prenom} ${user.nom}">${user.prenom} ${user.nom}</div>`).join('');
+                    resultsContainer.classList.remove('view-hidden');
+                } else {
+                    resultsContainer.innerHTML = '<div class="p-2 text-gray-500">Aucun utilisateur trouvé</div>';
+                    resultsContainer.classList.remove('view-hidden');
+                }
+            });
+
+            resultsContainer.addEventListener('click', (e) => {
+                if (e.target && e.target.dataset.id) {
+                    const userId = e.target.dataset.id;
+                    const userName = e.target.dataset.name;
+                    onSelectCallback(userId);
+                    inputElement.value = userName;
+                    resultsContainer.innerHTML = '';
+                    resultsContainer.classList.add('view-hidden');
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!resultsContainer.contains(e.target) && e.target !== inputElement) {
+                     resultsContainer.classList.add('view-hidden');
+                }
+            });
         };
 
         const listenToMenus = () => {
@@ -456,7 +531,7 @@
                 const midiStatus = daySchedule.midi || '-';
                 const soirStatus = daySchedule.soir || '-';
 
-                html += `<td class="itinerant-day">
+                html += `<td class="h-36 sm:h-40 p-1 sm:p-2">
                     <div class="calendar-day-number">${day}</div>
                     <div class="text-xs text-gray-500 mt-1 space-y-1"><p><b>M:</b> ${menuDejeuner}</p><p><b>S:</b> ${menuDiner}</p></div>
                     <div class="mt-2 space-y-1 text-xs">
@@ -507,7 +582,7 @@
                 const isWeekend = (dayOfWeek === 6 || dayOfWeek === 0);
 
                 if (isWeekend) {
-                    html += `<td class="salarie-day other-month"><div class="calendar-day-number">${day}</div></td>`;
+                    html += `<td class="h-28 sm:h-32 p-1 sm:p-2 other-month"><div class="calendar-day-number">${day}</div></td>`;
                     continue;
                 }
                 
@@ -515,15 +590,14 @@
                 const windowStart = new Date(deadline.getTime());
                 windowStart.setDate(windowStart.getDate() - 6);
                 windowStart.setHours(0, 0, 0, 0);
-
-                // A day is locked if it's not in the current editable week
+                
                 const isLocked = !(today >= windowStart && today <= deadline);
                 const lockedClass = isLocked ? 'day-locked' : '';
 
                 const daySchedule = schedule[day] || {};
                 const midiStatus = daySchedule.midi || '-';
 
-                html += `<td class="salarie-day ${lockedClass}">
+                html += `<td class="h-28 sm:h-32 p-1 sm:p-2 ${lockedClass}">
                     <div class="calendar-day-number">${day}</div>
                     <div class="mt-2 text-center">
                         <p class="text-sm mb-2">Déjeuner</p>
@@ -550,6 +624,8 @@
                  allSchedules = [];
                  snapshot.forEach(doc => allSchedules.push({ id: doc.id, ...doc.data() }));
                  renderAdminReports();
+                 initializeDashboard();
+                 initializeSuiviView();
             });
 
              renderUserLists();
@@ -577,16 +653,17 @@
                 }
             });
 
-            let dailyHtml = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border">Jour</th><th class="p-2 border">Déjeuner</th><th class="p-2 border">Dîner</th></tr></thead><tbody>`;
+            let dailyHtml = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border">Jour</th><th class="p-1 sm:p-2 border">Déjeuner</th><th class="p-1 sm:p-2 border">Dîner</th></tr></thead><tbody>`;
             for(let day=1; day<=daysInMonth; day++) {
-                dailyHtml += `<tr><td class="p-2 border font-bold">${day}</td><td class="p-2 border text-center text-blue-800 font-bold">${dailyCounts[day].midi}</td><td class="p-2 border text-center text-blue-800 font-bold">${dailyCounts[day].soir}</td></tr>`;
+                dailyHtml += `<tr><td class="p-1 sm:p-2 border font-bold">${day}</td><td class="p-1 sm:p-2 border text-center text-blue-800 font-bold">${dailyCounts[day].midi}</td><td class="p-1 sm:p-2 border text-center text-blue-800 font-bold">${dailyCounts[day].soir}</td></tr>`;
             }
             dailyHtml += `</tbody></table>`;
             adminCountsContainer.innerHTML = dailyHtml;
 
-            let userHtml = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Type</th><th class="p-2 border">Midi</th><th class="p-2 border">Soir</th></tr></thead><tbody>`;
+            let userHtml = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border text-left">Nom</th><th class="p-1 sm:p-2 border text-left">Type</th><th class="p-1 sm:p-2 border">Midi</th><th class="p-1 sm:p-2 border">Soir</th></tr></thead><tbody>`;
             allUsers.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
                 const userSchedule = allSchedules.find(s => s.userId === user.id);
+                const veggieIcon = user.vegetarien ? ' 🌿' : '';
                 let midiCount = 0;
                 let soirCount = 0;
                 if(userSchedule) {
@@ -598,7 +675,7 @@
                         }
                     }
                 }
-                userHtml += `<tr><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border">${user.type}</td><td class="p-2 border text-center font-bold">${midiCount}</td><td class="p-2 border text-center font-bold">${soirCount}</td></tr>`;
+                userHtml += `<tr><td class="p-1 sm:p-2 border">${user.prenom} ${user.nom}${veggieIcon}</td><td class="p-1 sm:p-2 border">${user.type}</td><td class="p-1 sm:p-2 border text-center font-bold">${midiCount}</td><td class="p-1 sm:p-2 border text-center font-bold">${soirCount}</td></tr>`;
             });
             userHtml += `</tbody></table>`;
             adminUserCountsContainer.innerHTML = userHtml;
@@ -613,19 +690,113 @@
         };
         
         const generateUserTable = (userList) => {
-            let html = `<table class="w-full text-sm"><thead><tr class="bg-gray-50"><th class="p-2 border text-left">Nom</th><th class="p-2 border text-left">Métier/Service</th><th class="p-2 border text-left">Chambre/Bureau</th><th class="p-2 border">Actions</th></tr></thead><tbody>`;
+            let html = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border text-left">Nom</th><th class="p-1 sm:p-2 border text-left">Métier/Service</th><th class="p-1 sm:p-2 border text-left">Chambre/Bureau</th><th class="p-1 sm:p-2 border">Actions</th></tr></thead><tbody>`;
              userList.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
-                 html += `<tr data-user-row-id="${user.id}"><td class="p-2 border">${user.prenom} ${user.nom}</td><td class="p-2 border">${user.metier}</td><td class="p-2 border">${user.chambre}</td><td class="p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
+                const veggieIcon = user.vegetarien ? ' 🌿' : '';
+                 html += `<tr data-user-row-id="${user.id}"><td class="p-1 sm:p-2 border">${user.prenom} ${user.nom}${veggieIcon}</td><td class="p-1 sm:p-2 border">${user.metier}</td><td class="p-1 sm:p-2 border">${user.chambre}</td><td class="p-1 sm:p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
              });
              html += `</tbody></table>`;
              return html;
         }
+
+        const initializeDashboard = async () => {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('dashboard-tomorrow-date').textContent = tomorrow.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+            let lunchCount = 0;
+            let dinnerCount = 0;
+            const year = tomorrow.getFullYear();
+            const month = tomorrow.getMonth();
+            const day = tomorrow.getDate();
+
+            for(const user of allUsers) {
+                const scheduleDocId = `${user.id}-${year}-${month}`;
+                const scheduleDoc = await getDoc(doc(getSchedulesCollection(), scheduleDocId));
+                if(scheduleDoc.exists()){
+                    const scheduleData = scheduleDoc.data();
+                    const daySchedule = scheduleData[day];
+                    if (daySchedule) {
+                        if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) lunchCount++;
+                        if ((user.type === 'itinérant' || !user.type) && (daySchedule.soir === '1' || daySchedule.soir === 'S')) dinnerCount++;
+                    }
+                }
+            }
+            document.getElementById('dashboard-lunch-count').textContent = lunchCount;
+            document.getElementById('dashboard-dinner-count').textContent = dinnerCount;
+        }
+
+        const initializeSuiviView = async () => {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            const thisMonday = new Date(today);
+            thisMonday.setDate(today.getDate() - (today.getDay() + 6) % 7);
+            
+            let monitoredWeekMonday;
+            const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+            if (dayOfWeek >= 5) { 
+                 monitoredWeekMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 21));
+            } else { 
+                 monitoredWeekMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 14));
+            }
+            
+            const monitoredWeekDays = [];
+            for(let i=0; i<5; i++) {
+                const day = new Date(monitoredWeekMonday);
+                day.setDate(monitoredWeekMonday.getDate() + i);
+                monitoredWeekDays.push(day);
+            }
+            
+            const start = monitoredWeekDays[0];
+            const end = monitoredWeekDays[4];
+            const weekLabel = `Semaine du ${start.toLocaleDateString('fr-FR')} au ${end.toLocaleDateString('fr-FR')}`;
+            suiviWeekLabel.textContent = weekLabel;
+            document.getElementById('dashboard-suivi-week').textContent = weekLabel;
+            
+            const salaries = allUsers.filter(u => u.type === 'salarié');
+            if (salaries.length === 0) {
+                suiviContainer.innerHTML = `<p class="text-gray-500">Aucun salarié à suivre.</p>`;
+                document.getElementById('dashboard-suivi-incomplete').textContent = "0";
+                return;
+            }
+
+            let html = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border text-left">Nom</th><th class="p-1 sm:p-2 border text-center">Statut</th></tr></thead><tbody>`;
+            let incompleteCount = 0;
+            
+            for (const salarie of salaries) {
+                let isComplete = true;
+                for (const day of monitoredWeekDays) {
+                    const year = day.getFullYear();
+                    const month = day.getMonth();
+                    const dayOfMonth = day.getDate();
+                    const scheduleDocId = `${salarie.id}-${year}-${month}`;
+                    const scheduleDoc = await getDoc(doc(getSchedulesCollection(), scheduleDocId));
+                    const scheduleData = scheduleDoc.exists() ? scheduleDoc.data() : {};
+                    if (!scheduleData[dayOfMonth] || scheduleData[dayOfMonth].midi === '-') {
+                        isComplete = false;
+                        break;
+                    }
+                }
+                
+                if (!isComplete) incompleteCount++;
+
+                const statusIcon = isComplete 
+                    ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✓ Complété</span>`
+                    : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">✗ Incomplet</span>`;
+                
+                html += `<tr><td class="p-1 sm:p-2 border">${salarie.prenom} ${salarie.nom}</td><td class="p-1 sm:p-2 border text-center">${statusIcon}</td></tr>`;
+            }
+            html += `</tbody></table>`;
+            suiviContainer.innerHTML = html;
+            document.getElementById('dashboard-suivi-incomplete').textContent = incompleteCount;
+        };
         
         const exportToCSV = () => {
              const year = currentDate.getFullYear();
              const month = currentDate.getMonth();
              let csvContent = "data:text/csv;charset=utf-8,";
-             csvContent += "Prénom,Nom,Type,Métier/Service,Chambre/Bureau,Total Midi,Total Soir\r\n";
+             csvContent += "Prénom,Nom,Type,Métier/Service,Chambre/Bureau,Régime Spécial,Total Midi,Total Soir\r\n";
 
             allUsers.forEach(user => {
                 const userSchedule = allSchedules.find(s => s.userId === user.id);
@@ -642,7 +813,8 @@
                         }
                     }
                 }
-                csvContent += `${user.prenom},${user.nom},${user.type || 'itinérant'},${user.metier},${user.chambre},${midiCount},${soirCount}\r\n`;
+                const specialDiet = user.vegetarien ? "Végétarien" : "";
+                csvContent += `${user.prenom},${user.nom},${user.type || 'itinérant'},${user.metier},${user.chambre},${specialDiet},${midiCount},${soirCount}\r\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -654,13 +826,12 @@
             document.body.removeChild(link);
         };
         
-        const loginUser = (selectElement) => {
-            const selectedId = selectElement.value;
-            if (selectedId) {
-                selectedUserProfile = allUsers.find(u => u.id === selectedId);
+        const loginUser = (userId) => {
+            if (userId) {
+                selectedUserProfile = allUsers.find(u => u.id === userId);
                 if (selectedUserProfile) {
                     currentDate = new Date();
-                    const userType = selectedUserProfile.type || 'itinérant'; // Default to itinerant
+                    const userType = selectedUserProfile.type || 'itinérant';
                     if (userType === 'salarié') {
                         showView('salarie');
                         initializeSalarieView();
@@ -672,9 +843,16 @@
             }
         };
 
+        const switchTab = (tabName) => {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.admin-tab[data-tab="${tabName}"]`).classList.add('active');
+            document.querySelectorAll('#admin-tab-content > div').forEach(c => c.classList.add('view-hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('view-hidden');
+        };
+
         // --- Event Listeners ---
-        document.getElementById('login-itinerant-btn').addEventListener('click', () => loginUser(itinerantSelect));
-        document.getElementById('login-salarie-btn').addEventListener('click', () => loginUser(salarieSelect));
+        document.getElementById('login-itinerant-btn').addEventListener('click', () => loginUser(selectedItinerantId));
+        document.getElementById('login-salarie-btn').addEventListener('click', () => loginUser(selectedSalarieId));
 
         document.getElementById('login-admin-btn').addEventListener('click', () => {
              if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
@@ -721,9 +899,7 @@
         };
         
         userTypeSelect.addEventListener('change', updateUserCreationForm);
-        // Initial call
         updateUserCreationForm();
-
 
         document.getElementById('create-user-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -732,6 +908,7 @@
                 nom: form['user-nom'].value, prenom: form['user-prenom'].value,
                 email: form['user-email'].value, chambre: form['user-chambre'].value,
                 metier: form['user-metier'].value, type: form['user-type'].value,
+                vegetarien: form['user-vegetarien'].checked,
                 createdAt: serverTimestamp()
             };
             try {
@@ -843,7 +1020,8 @@
                         prenom: row.querySelector('.edit-prenom-input').value,
                         chambre: row.querySelector('.edit-chambre-input').value,
                         metier: row.querySelector('.edit-metier-select').value,
-                        type: row.querySelector('.edit-type-select').value
+                        type: row.querySelector('.edit-type-select').value,
+                        vegetarien: row.querySelector('.edit-vegetarien-checkbox').checked
                     };
                     await updateDoc(doc(getUsersCollection(), userId), updatedData);
                 } catch (error) { console.error("Error updating user:", error); }
@@ -864,13 +1042,24 @@
                 
                 const typeOptions = ['itinérant', 'salarié'];
                 const typeSelect = typeOptions.map(t => `<option value="${t}" ${userType === t ? 'selected' : ''}>${t}</option>`).join('');
+                
+                const veggieChecked = userToEdit.vegetarien ? 'checked' : '';
 
                 rowToEdit.innerHTML = `
-                    <td class="p-2 border"><input class="w-full p-1 border rounded edit-prenom-input" value="${userToEdit.prenom}"><input class="w-full p-1 border rounded mt-1 edit-nom-input" value="${userToEdit.nom}"></td>
-                     <td class="p-2 border"><select class="w-full p-1 border rounded edit-type-select">${typeSelect}</select></td>
-                    <td class="p-2 border"><select class="w-full p-1 border rounded edit-metier-select">${metierSelect}</select></td>
-                    <td class="p-2 border"><input class="w-full p-1 border rounded edit-chambre-input" value="${userToEdit.chambre}"></td>
-                    <td class="p-2 border text-center align-middle"><button data-id="${userId}" class="save-edit-btn text-green-600 hover:text-green-800 font-bold">OK</button><button class="cancel-edit-btn text-gray-600 hover:text-gray-800 ml-2">X</button></td>
+                    <td class="p-1 sm:p-2 border">
+                        <input class="w-full p-1 border rounded edit-prenom-input" value="${userToEdit.prenom}">
+                        <input class="w-full p-1 border rounded mt-1 edit-nom-input" value="${userToEdit.nom}">
+                    </td>
+                     <td class="p-1 sm:p-2 border">
+                        <select class="w-full p-1 border rounded edit-type-select">${typeSelect}</select>
+                        <div class="flex items-center mt-1">
+                           <input type="checkbox" ${veggieChecked} class="h-4 w-4 text-blue-600 border-gray-300 rounded edit-vegetarien-checkbox">
+                           <label class="ml-2 text-xs">Végétarien</label>
+                        </div>
+                    </td>
+                    <td class="p-1 sm:p-2 border"><select class="w-full p-1 border rounded edit-metier-select">${metierSelect}</select></td>
+                    <td class="p-1 sm:p-2 border"><input class="w-full p-1 border rounded edit-chambre-input" value="${userToEdit.chambre}"></td>
+                    <td class="p-1 sm:p-2 border text-center align-middle"><button data-id="${userId}" class="save-edit-btn text-green-600 hover:text-green-800 font-bold">OK</button><button class="cancel-edit-btn text-gray-600 hover:text-gray-800 ml-2">X</button></td>
                 `;
             }
         });
@@ -878,14 +1067,13 @@
 
         document.getElementById('admin-tabs').addEventListener('click', (e) => {
             if (e.target.matches('.admin-tab')) {
-                const tab = e.target.dataset.tab;
-                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                
-                document.querySelectorAll('#admin-tab-content > div').forEach(c => c.classList.add('view-hidden'));
-                document.getElementById(`tab-${tab}`).classList.remove('view-hidden');
+                switchTab(e.target.dataset.tab);
             }
         });
+        
+        document.getElementById('dashboard-goto-suivi').addEventListener('click', () => switchTab('suivi'));
+        document.getElementById('dashboard-goto-users').addEventListener('click', () => switchTab('users'));
+        document.getElementById('dashboard-goto-menus').addEventListener('click', () => switchTab('menus'));
         
         document.getElementById('meal-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -902,7 +1090,7 @@
                 setTimeout(() => document.getElementById('save-feedback').textContent = '', 2000);
             } catch (error) { console.error("Error saving meal: ", error); }
         });
-
+        
     </script>
 </body>
 </html>
