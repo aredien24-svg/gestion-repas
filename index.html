@@ -97,13 +97,30 @@
 
         <!-- Vue Itinérant Standard -->
         <main id="itinerant-view" class="view-hidden">
-            <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
-                <div id="itinerant-calendar-header" class="flex justify-between items-center text-center mb-4">
-                    <button id="itinerant-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
-                    <h2 class="text-xl sm:text-2xl font-semibold"></h2>
-                    <button id="itinerant-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
+             <div class="mb-4 border-b border-gray-200">
+                <nav id="itinerant-tabs" class="flex space-x-8" aria-label="Tabs">
+                    <button class="admin-tab active" data-tab="itinerant-calendar">Mon Calendrier</button>
+                    <button class="admin-tab" data-tab="itinerant-planning">Planification Annuelle</button>
+                </nav>
+            </div>
+             <div id="itinerant-tab-content">
+                <div id="tab-itinerant-calendar">
+                    <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
+                        <div id="itinerant-calendar-header" class="flex justify-between items-center text-center mb-4">
+                            <button id="itinerant-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
+                            <h2 class="text-xl sm:text-2xl font-semibold"></h2>
+                            <button id="itinerant-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
+                        </div>
+                        <div id="itinerant-calendar-container" class="overflow-x-auto"></div>
+                    </div>
                 </div>
-                <div id="itinerant-calendar-container" class="overflow-x-auto"></div>
+                <div id="tab-itinerant-planning" class="view-hidden">
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-2">Planifier les Stages et Vacances</h3>
+                        <p class="text-sm text-gray-600 mb-4">Cliquez sur une semaine pour définir son statut pour toute l'année.</p>
+                        <div id="annual-planning-container" class="space-y-4"></div>
+                    </div>
+                </div>
             </div>
         </main>
         
@@ -113,6 +130,7 @@
                 <nav id="responsable-tabs" class="flex space-x-8" aria-label="Tabs">
                     <button class="admin-tab active" data-tab="resp-calendar">Mon Calendrier</button>
                     <button class="admin-tab" data-tab="resp-suivi">Suivi Corporation</button>
+                    <button class="admin-tab" data-tab="resp-planning">Planification Annuelle</button>
                 </nav>
             </div>
             <div id="responsable-tab-content">
@@ -133,6 +151,13 @@
                             <p id="responsable-suivi-label" class="text-gray-600 text-sm mt-1"></p>
                         </div>
                         <div id="responsable-suivi-container"></div>
+                    </div>
+                </div>
+                 <div id="tab-resp-planning" class="view-hidden">
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-2">Planifier les Stages et Vacances</h3>
+                        <p class="text-sm text-gray-600 mb-4">Cliquez sur une semaine pour définir son statut pour toute l'année.</p>
+                        <div id="annual-planning-container-resp" class="space-y-4"></div>
                     </div>
                 </div>
             </div>
@@ -271,6 +296,7 @@
         let allUsers = [];
         let allSchedules = [];
         let allMenus = {};
+        let annualPlan = {};
         const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
         let currentDate = new Date();
         let unsubscribeUsersLoginListener = null;
@@ -278,7 +304,7 @@
         let selectedSalarieId = null;
         let isImpersonating = false;
         
-        const itinerantMetiers = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier'];
+        const itinerantMetiers = ['Carrossier', 'Charpentier', 'Chaudronnier', 'Couvreur', 'Ebéniste', 'Mécanicien', 'Menuisier', 'Métallier', 'Pâtissier', 'Peintre', 'Plombier', 'Tailleur de pierre', 'Tapissier', 'Maroquinier', 'Electricien', 'Boulanger'];
         const salarieServices = ['Développement', 'Administratif', 'Production', 'Financier'];
 
         // --- DOM Elements ---
@@ -311,6 +337,7 @@
         const getUsersCollection = () => collection(db, 'users');
         const getSchedulesCollection = () => collection(db, 'schedules');
         const getMenusCollection = () => collection(db, 'menus');
+        const getAnnualPlanDoc = (userId) => doc(db, 'annual_plans', userId);
         
         // --- Date Management ---
         const getMonthData = (year, month) => {
@@ -319,6 +346,13 @@
             const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Monday = 0
             return { monthName, daysInMonth, firstDayIndex };
         };
+
+        const getWeekNumber = (d) => {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            return Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+        }
 
         const getDeadline = (targetDate) => {
             const date = new Date(targetDate.getTime());
@@ -485,6 +519,10 @@
                 const userSchedule = doc.exists() ? doc.data() : {};
                 renderItinerantCalendar(userSchedule, itinerantCalendarContainer, itinerantCalendarHeader);
             });
+             onSnapshot(doc(getAnnualPlanDoc(selectedUserProfile.id)), doc => {
+                annualPlan = doc.exists() ? doc.data() : {};
+                renderAnnualPlanning(document.getElementById('annual-planning-container'));
+            });
         };
         
         const initializeResponsableView = () => {
@@ -500,6 +538,11 @@
                 renderItinerantCalendar(userSchedule, responsableCalendarContainer, responsableCalendarHeader);
             });
 
+             onSnapshot(doc(getAnnualPlanDoc(selectedUserProfile.id)), doc => {
+                annualPlan = doc.exists() ? doc.data() : {};
+                renderAnnualPlanning(document.getElementById('annual-planning-container-resp'));
+            });
+
             // Suivi part
             initializeResponsableSuivi();
         };
@@ -509,25 +552,34 @@
             const metier = selectedUserProfile.metier;
             const itinerantsInMetier = allUsers.filter(u => u.metier === metier && (u.type === 'itinérant' || !u.type));
 
-            let html = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border text-left">Nom</th><th class="p-1 sm:p-2 border">Midi</th><th class="p-1 sm:p-2 border">Soir</th></tr></thead><tbody>`;
+            let html = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border text-left">Nom</th><th class="p-1 sm:p-2 border text-center">Statut</th></tr></thead><tbody>`;
 
             for (const itinerant of itinerantsInMetier) {
                 const year = currentDate.getFullYear();
                 const month = currentDate.getMonth();
                 const scheduleDoc = await getDoc(doc(getSchedulesCollection(), `${itinerant.id}-${year}-${month}`));
                 const scheduleData = scheduleDoc.exists() ? scheduleDoc.data() : {};
-                
-                let midiCount = 0;
-                let soirCount = 0;
 
-                for (const day in scheduleData) {
-                    if(!isNaN(day)) {
-                        const daySchedule = scheduleData[day];
-                        if (daySchedule.midi === '1' || daySchedule.midi === 'S') midiCount++;
-                        if (daySchedule.soir === '1' || daySchedule.soir === 'S') soirCount++;
+                const annualPlanDoc = await getDoc(doc(getAnnualPlanDoc(itinerant.id)));
+                const userAnnualPlan = annualPlanDoc.exists() ? annualPlanDoc.data() : {};
+                
+                let isComplete = true;
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const weekNum = getWeekNumber(date);
+
+                    if (!scheduleData[day] && !userAnnualPlan[weekNum]) {
+                        isComplete = false;
+                        break;
                     }
                 }
-                 html += `<tr><td class="p-1 sm:p-2 border">${itinerant.prenom} ${itinerant.nom}</td><td class="p-1 sm:p-2 border text-center font-bold">${midiCount}</td><td class="p-1 sm:p-2 border text-center font-bold">${soirCount}</td></tr>`;
+
+                const statusIcon = isComplete 
+                    ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✓ Complété</span>`
+                    : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">✗ Incomplet</span>`;
+
+                 html += `<tr><td class="p-1 sm:p-2 border">${itinerant.prenom} ${itinerant.nom}</td><td class="p-1 sm:p-2 border text-center">${statusIcon}</td></tr>`;
             }
              html += `</tbody></table>`;
              document.getElementById('responsable-suivi-container').innerHTML = html;
@@ -549,10 +601,21 @@
                 if (day > 1 && (firstDayIndex + day - 1) % 7 === 0) html += `</tr><tr>`;
                 
                 const dayDate = new Date(year, month, day);
+                const weekNum = getWeekNumber(dayDate);
                 const dayOfWeekName = daysOfWeek[dayDate.getDay() === 0 ? 6 : dayDate.getDay() - 1];
                 const menuDejeuner = allMenus[`${dayOfWeekName}-Déjeuner`]?.description || '<i>Non défini</i>';
                 const menuDiner = allMenus[`${dayOfWeekName}-Dîner`]?.description || '<i>Non défini</i>';
-                const daySchedule = schedule[day] || {};
+                
+                let daySchedule = schedule[day] || {};
+                
+                // Apply annual plan if no specific choice is made for the day
+                if ((!daySchedule.midi || daySchedule.midi === '-') && annualPlan[weekNum]) {
+                    daySchedule.midi = annualPlan[weekNum] === 'stage' ? 'S' : 'V';
+                }
+                if ((!daySchedule.soir || daySchedule.soir === '-') && annualPlan[weekNum]) {
+                    daySchedule.soir = annualPlan[weekNum] === 'stage' ? 'S' : 'V';
+                }
+
                 const midiStatus = daySchedule.midi || '-';
                 const soirStatus = daySchedule.soir || '-';
 
@@ -569,6 +632,64 @@
             html += `</tr></tbody></table>`;
             container.innerHTML = html;
         };
+
+        const renderAnnualPlanning = (container) => {
+             const year = new Date().getFullYear();
+            let html = `<h4 class="text-lg font-semibold mb-4 text-center">${year}</h4>`;
+            
+            for(let month=0; month<12; month++){
+                html += `<div class="mb-4"><p class="font-semibold text-gray-800">${new Date(year, month).toLocaleString('fr-FR', {month: 'long'})}</p><div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 mt-2">`;
+                
+                const firstDayOfMonth = new Date(year, month, 1);
+                const firstMonday = new Date(firstDayOfMonth);
+                firstMonday.setDate(firstDayOfMonth.getDate() - (firstDayOfMonth.getDay() + 6) % 7);
+                
+                for(let i=0; i<6; i++){
+                    const mondayOfWeek = new Date(firstMonday);
+                    mondayOfWeek.setDate(firstMonday.getDate() + i * 7);
+
+                    if(mondayOfWeek.getFullYear() > year || mondayOfWeek.getMonth() > month) break;
+
+                    const sundayOfWeek = new Date(mondayOfWeek);
+                    sundayOfWeek.setDate(mondayOfWeek.getDate() + 6);
+                    
+                    const weekNum = getWeekNumber(mondayOfWeek);
+                    const weekStatus = annualPlan[weekNum] || 'none';
+
+                    html += `<div class="border rounded-lg p-2 text-sm">
+                        <p class="font-medium">Sem. ${weekNum}</p>
+                        <p class="text-xs text-gray-500">${mondayOfWeek.getDate()} - ${sundayOfWeek.getDate()} ${sundayOfWeek.toLocaleString('fr-FR', {month: 'short'})}</p>
+                        <div class="mt-2 space-x-1"><button data-week="${weekNum}" data-status="stage" class="week-status-btn px-2 py-1 text-xs rounded ${weekStatus === 'stage' ? 'bg-blue-500 text-white' : 'bg-blue-100'}">S</button><button data-week="${weekNum}" data-status="vacances" class="week-status-btn px-2 py-1 text-xs rounded ${weekStatus === 'vacances' ? 'bg-yellow-400 text-white' : 'bg-yellow-100'}">V</button><button data-week="${weekNum}" data-status="none" class="week-status-btn px-2 py-1 text-xs rounded ${weekStatus === 'none' ? 'bg-gray-400 text-white' : 'bg-gray-200'}">X</button></div>
+                    </div>`;
+                }
+
+                html += `</div></div>`;
+            }
+            container.innerHTML = html;
+        };
+
+        const handleAnnualPlanClick = async (e) => {
+            if(!e.target.matches('.week-status-btn')) return;
+            const week = e.target.dataset.week;
+            const status = e.target.dataset.status;
+
+            const planDocRef = getAnnualPlanDoc(selectedUserProfile.id);
+            const newPlan = {...annualPlan};
+            if(status === 'none') {
+                delete newPlan[week];
+            } else {
+                newPlan[week] = status;
+            }
+
+            try {
+                await setDoc(planDocRef, newPlan);
+            } catch (error) {
+                console.error("Error updating annual plan", error);
+            }
+        };
+
+        document.getElementById('annual-planning-container').addEventListener('click', handleAnnualPlanClick);
+        document.getElementById('annual-planning-container-resp').addEventListener('click', handleAnnualPlanClick);
         
         // --- Salarié Logic ---
         const initializeSalarieView = () => {
@@ -703,8 +824,8 @@
                 for(let day=1; day<=daysInMonth; day++) {
                     const daySchedule = schedule[day];
                     if (daySchedule) {
-                        if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) dailyCounts[day].midi++;
-                        if ((user.type === 'itinérant' || !user.type) && (daySchedule.soir === '1' || daySchedule.soir === 'S')) dailyCounts[day].soir++;
+                        if (daySchedule.midi === '1' || daySchedule.midi === 'S') dailyCounts[day].midi++;
+                        if (daySchedule.soir === '1' || daySchedule.soir === 'S') dailyCounts[day].soir++;
                     }
                 }
             });
@@ -726,7 +847,7 @@
                     for(let day=1; day<=daysInMonth; day++) {
                         const daySchedule = userSchedule[day];
                         if (daySchedule) {
-                             if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) midiCount++;
+                             if (daySchedule.midi === '1' || daySchedule.midi === 'S') midiCount++;
                              if ((user.type === 'itinérant' || !user.type) && (daySchedule.soir === '1' || daySchedule.soir === 'S')) soirCount++;
                         }
                     }
@@ -774,7 +895,7 @@
                     const scheduleData = scheduleDoc.data();
                     const daySchedule = scheduleData[day];
                     if (daySchedule) {
-                        if (daySchedule.midi === '1' || (user.type === 'itinérant' && daySchedule.midi === 'S')) lunchCount++;
+                        if (daySchedule.midi === '1' || daySchedule.midi === 'S') lunchCount++;
                         if ((user.type === 'itinérant' || !user.type) && (daySchedule.soir === '1' || daySchedule.soir === 'S')) dinnerCount++;
                     }
                 }
