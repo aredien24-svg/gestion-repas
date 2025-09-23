@@ -499,7 +499,7 @@
             
             const salarieRulesMessage = document.getElementById('salarie-rules-message');
             if(selectedUserProfile.statut === 'commercial') {
-                salarieRulesMessage.innerHTML = `<p>En tant que commercial, vous pouvez modifier votre présence pour le mois entier à tout moment.</p>`;
+                salarieRulesMessage.innerHTML = `<p>En tant que commercial, vous pouvez modifier votre présence pour le mois en cours (jours futurs uniquement).</p>`;
             } else {
                 salarieRulesMessage.innerHTML = `<p>Vous pouvez modifier votre présence pour une semaine jusqu'au <strong>jeudi de l'avant-dernière semaine</strong>. Ex: la semaine du 20 au 24 est modifiable jusqu'au jeudi 9 au soir. Les jours verrouillés sont grisés.</p>`;
             }
@@ -526,7 +526,12 @@
                 }
                 
                 let isLocked = false;
-                if (selectedUserProfile.statut !== 'commercial') {
+                if (selectedUserProfile.statut === 'commercial') {
+                    const realCurrentDate = new Date();
+                    if (cellDate < today || cellDate.getMonth() !== realCurrentDate.getMonth() || cellDate.getFullYear() !== realCurrentDate.getFullYear()) {
+                        isLocked = true;
+                    }
+                } else {
                     const deadline = getDeadline(cellDate);
                     const windowStart = new Date(deadline.getTime());
                     windowStart.setDate(windowStart.getDate() - 6);
@@ -783,21 +788,24 @@
             if (userId) {
                 selectedUserProfile = allUsers.find(u => u.id === userId);
                 if (selectedUserProfile) {
-                    currentDate = new Date();
                     const userType = selectedUserProfile.type || 'itinérant';
                     if (userType === 'salarié') {
-                         const today = new Date();
-                        today.setHours(0,0,0,0);
-                        const thisMonday = new Date(today);
-                        thisMonday.setDate(today.getDate() - (today.getDay() + 6) % 7);
-                        let monitoredWeekMonday;
-                        const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-                        if (dayOfWeek >= 5) { 
-                             monitoredWeekMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 21));
-                        } else { 
-                             monitoredWeekMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 14));
+                        if (selectedUserProfile.statut === 'commercial') {
+                            currentDate = new Date();
+                        } else {
+                             const today = new Date();
+                            today.setHours(0,0,0,0);
+                            const thisMonday = new Date(today);
+                            thisMonday.setDate(today.getDate() - (today.getDay() + 6) % 7);
+                            let monitoredWeekMonday;
+                            const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+                            if (dayOfWeek >= 5) { 
+                                 monitoredWeekMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 21));
+                            } else { 
+                                 monitoredWeekMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 14));
+                            }
+                            currentDate = monitoredWeekMonday;
                         }
-                        currentDate = monitoredWeekMonday;
                         showView('salarie');
                         initializeSalarieView();
                     } else {
@@ -987,16 +995,16 @@
             
             if (target.classList.contains('save-edit-btn')) {
                 const userId = target.dataset.id;
-                const updatedData = {
-                    nom: row.querySelector('.edit-nom-input').value,
-                    prenom: row.querySelector('.edit-prenom-input').value,
-                    chambre: row.querySelector('.edit-chambre-input').value,
-                    metier: row.querySelector('.edit-metier-select').value,
-                    type: row.querySelector('.edit-type-select').value,
-                    vegetarien: row.querySelector('.edit-vegetarien-checkbox').checked,
-                    statut: row.querySelector('.edit-statut-select') ? row.querySelector('.edit-statut-select').value : 'standard'
-                };
                 try {
+                    const updatedData = {
+                        nom: row.querySelector('.edit-nom-input').value,
+                        prenom: row.querySelector('.edit-prenom-input').value,
+                        chambre: row.querySelector('.edit-chambre-input').value,
+                        metier: row.querySelector('.edit-metier-select').value,
+                        type: row.querySelector('.edit-type-select').value,
+                        vegetarien: row.querySelector('.edit-vegetarien-checkbox').checked,
+                        statut: row.querySelector('.edit-statut-select') ? row.querySelector('.edit-statut-select').value : 'standard'
+                    };
                     await updateDoc(doc(getUsersCollection(), userId), updatedData);
                 } catch (error) { console.error("Error updating user:", error); }
                 return;
