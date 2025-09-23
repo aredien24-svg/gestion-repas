@@ -55,13 +55,14 @@
                 <h2 class="text-2xl font-bold text-center text-blue-800 mb-6">Identifiez-vous</h2>
                 
                 <!-- Section Itinérant -->
-                <div class="space-y-4 border-b pb-4 mb-4">
+                <div class="space-y-2 border-b pb-4 mb-4">
                     <h3 class="text-lg font-semibold text-gray-700">Accès Itinérant</h3>
                     <div>
-                        <label for="itinerant-select" class="block text-sm font-medium text-gray-700">Choisissez votre profil</label>
-                        <select id="itinerant-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option>Chargement...</option>
-                        </select>
+                        <label for="itinerant-search" class="block text-sm font-medium text-gray-700">Recherchez votre nom</label>
+                        <div class="relative mt-1">
+                            <input type="text" id="itinerant-search" autocomplete="off" class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" placeholder="Commencez à taper votre nom...">
+                            <div id="itinerant-results" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-48 overflow-y-auto view-hidden"></div>
+                        </div>
                     </div>
                     <button id="login-itinerant-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-900">
                         Accéder
@@ -69,13 +70,14 @@
                 </div>
     
                 <!-- Section Salarié -->
-                <div class="space-y-4">
+                <div class="space-y-2">
                     <h3 class="text-lg font-semibold text-gray-700">Accès Salarié</h3>
                     <div>
-                        <label for="salarie-select" class="block text-sm font-medium text-gray-700">Choisissez votre profil</label>
-                        <select id="salarie-select" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option>Chargement...</option>
-                        </select>
+                        <label for="salarie-search" class="block text-sm font-medium text-gray-700">Recherchez votre nom</label>
+                        <div class="relative mt-1">
+                            <input type="text" id="salarie-search" autocomplete="off" class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" placeholder="Commencez à taper votre nom...">
+                            <div id="salarie-results" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-48 overflow-y-auto view-hidden"></div>
+                        </div>
                     </div>
                     <button id="login-salarie-btn" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-800 hover:bg-blue-900">
                         Accéder
@@ -242,6 +244,8 @@
         const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
         let currentDate = new Date();
         let unsubscribeUsersLoginListener = null;
+        let selectedItinerantId = null;
+        let selectedSalarieId = null;
         
         const itinerantMetiers = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier'];
         const salarieServices = ['Développement', 'Administratif', 'Production', 'Financier'];
@@ -252,8 +256,10 @@
         const salarieView = document.getElementById('salarie-view');
         const adminView = document.getElementById('admin-view');
         const headerControls = document.getElementById('header-controls');
-        const itinerantSelect = document.getElementById('itinerant-select');
-        const salarieSelect = document.getElementById('salarie-select');
+        const itinerantSearchInput = document.getElementById('itinerant-search');
+        const salarieSearchInput = document.getElementById('salarie-search');
+        const itinerantResultsContainer = document.getElementById('itinerant-results');
+        const salarieResultsContainer = document.getElementById('salarie-results');
         const itinerantCalendarContainer = document.getElementById('itinerant-calendar-container');
         const itinerantCalendarHeader = document.getElementById('itinerant-calendar-header').querySelector('h2');
         const salarieCalendarContainer = document.getElementById('salarie-calendar-container');
@@ -327,8 +333,8 @@
                     const itinerants = allUsers.filter(u => u.type === 'itinérant' || !u.type);
                     const salaries = allUsers.filter(u => u.type === 'salarié');
                     
-                    populateSelect(document.getElementById('itinerant-select'), itinerants, "itinérants");
-                    populateSelect(document.getElementById('salarie-select'), salaries, "salariés");
+                    setupSearch(itinerantSearchInput, itinerantResultsContainer, itinerants, (userId) => { selectedItinerantId = userId; });
+                    setupSearch(salarieSearchInput, salarieResultsContainer, salaries, (userId) => { selectedSalarieId = userId; });
 
                 }, (error) => {
                     console.error("Firestore error on users collection:", error);
@@ -348,21 +354,41 @@
             }
         });
 
-        const populateSelect = (selectElement, userList, typeName) => {
-            selectElement.innerHTML = `<option value="">-- Sélectionnez votre nom --</option>`;
-            if (userList.length === 0) {
-                 const option = document.createElement('option');
-                 option.textContent = `Aucun ${typeName} créé`;
-                 option.disabled = true;
-                 selectElement.appendChild(option);
-            } else {
-                userList.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.id;
-                    option.textContent = `${user.prenom} ${user.nom}`;
-                    selectElement.appendChild(option);
-                });
-            }
+        const setupSearch = (inputElement, resultsContainer, userList, onSelectCallback) => {
+            inputElement.addEventListener('input', () => {
+                onSelectCallback(null);
+                const searchTerm = inputElement.value.toLowerCase();
+                if (searchTerm.length < 1) {
+                    resultsContainer.innerHTML = '';
+                    resultsContainer.classList.add('view-hidden');
+                    return;
+                }
+                const filteredUsers = userList.filter(user => `${user.prenom} ${user.nom}`.toLowerCase().includes(searchTerm));
+                if (filteredUsers.length > 0) {
+                    resultsContainer.innerHTML = filteredUsers.map(user => `<div class="p-2 cursor-pointer hover:bg-gray-100" data-id="${user.id}" data-name="${user.prenom} ${user.nom}">${user.prenom} ${user.nom}</div>`).join('');
+                    resultsContainer.classList.remove('view-hidden');
+                } else {
+                    resultsContainer.innerHTML = '<div class="p-2 text-gray-500">Aucun utilisateur trouvé</div>';
+                    resultsContainer.classList.remove('view-hidden');
+                }
+            });
+
+            resultsContainer.addEventListener('click', (e) => {
+                if (e.target && e.target.dataset.id) {
+                    const userId = e.target.dataset.id;
+                    const userName = e.target.dataset.name;
+                    onSelectCallback(userId);
+                    inputElement.value = userName;
+                    resultsContainer.innerHTML = '';
+                    resultsContainer.classList.add('view-hidden');
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!resultsContainer.contains(e.target) && e.target !== inputElement) {
+                     resultsContainer.classList.add('view-hidden');
+                }
+            });
         };
 
         const listenToMenus = () => {
