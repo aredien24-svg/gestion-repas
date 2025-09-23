@@ -116,8 +116,7 @@
                         <p class="text-3xl font-bold text-blue-800">0</p>
                     </div>
                 </div>
-                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
-                    <p>Vous pouvez modifier votre présence pour une semaine jusqu'au <strong>jeudi de l'avant-dernière semaine</strong>. Ex: la semaine du 20 au 24 est modifiable jusqu'au jeudi 9 au soir. Les jours verrouillés sont grisés.</p>
+                <div id="salarie-rules-message" class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
                 </div>
                 <div id="salarie-calendar-header" class="flex justify-between items-center text-center mb-4">
                     <button id="salarie-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
@@ -194,7 +193,7 @@
                 <!-- Gestion Utilisateurs -->
                 <div id="tab-users" class="view-hidden">
                      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md"><h3 class="text-xl font-semibold mb-4">Créer un utilisateur</h3><form id="create-user-form" class="space-y-4"><div><label for="user-type" class="block text-sm font-medium text-gray-700">Type de profil</label><select id="user-type" required class="w-full p-2 border rounded mt-1"><option value="itinérant">Itinérant</option><option value="salarié">Salarié</option></select></div><input type="text" id="user-nom" placeholder="Nom" required class="w-full p-2 border rounded"><input type="text" id="user-prenom" placeholder="Prénom" required class="w-full p-2 border rounded"><input type="email" id="user-email" placeholder="Email" required class="w-full p-2 border rounded"><input type="text" id="user-chambre" placeholder="N° de chambre" required class="w-full p-2 border rounded"><div><label id="metier-service-label" for="user-metier" class="block text-sm font-medium text-gray-700">Métier</label><select id="user-metier" required class="w-full p-2 border rounded mt-1"></select></div><div class="flex items-center"><input id="user-vegetarien" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"><label for="user-vegetarien" class="ml-2 block text-sm text-gray-900">Végétarien</label></div><button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">Créer</button><p id="user-create-feedback" class="text-green-600 text-sm"></p></form></div>
+                        <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md"><h3 class="text-xl font-semibold mb-4">Créer un utilisateur</h3><form id="create-user-form" class="space-y-4"><div><label for="user-type" class="block text-sm font-medium text-gray-700">Type de profil</label><select id="user-type" required class="w-full p-2 border rounded mt-1"><option value="itinérant">Itinérant</option><option value="salarié">Salarié</option></select></div><div id="salarie-statut-container" class="view-hidden"><label for="salarie-statut" class="block text-sm font-medium text-gray-700">Statut du Salarié</label><select id="salarie-statut" class="w-full p-2 border rounded mt-1"><option value="standard">Standard</option><option value="commercial">Commercial</option></select></div><input type="text" id="user-nom" placeholder="Nom" required class="w-full p-2 border rounded"><input type="text" id="user-prenom" placeholder="Prénom" required class="w-full p-2 border rounded"><input type="email" id="user-email" placeholder="Email" required class="w-full p-2 border rounded"><input type="text" id="user-chambre" placeholder="N° de chambre" required class="w-full p-2 border rounded"><div><label id="metier-service-label" for="user-metier" class="block text-sm font-medium text-gray-700">Métier</label><select id="user-metier" required class="w-full p-2 border rounded mt-1"></select></div><div class="flex items-center"><input id="user-vegetarien" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"><label for="user-vegetarien" class="ml-2 block text-sm text-gray-900">Végétarien</label></div><button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">Créer</button><p id="user-create-feedback" class="text-green-600 text-sm"></p></form></div>
                         <div id="user-lists-wrapper" class="lg:col-span-2 space-y-8"><div class="bg-white p-4 sm:p-6 rounded-lg shadow-md"><h3 class="text-xl font-semibold mb-4">Liste des Itinérants</h3><div id="itinerant-list-container" class="overflow-x-auto"></div></div><div class="bg-white p-4 sm:p-6 rounded-lg shadow-md"><h3 class="text-xl font-semibold mb-4">Liste des Salariés</h3><div id="salarie-list-container" class="overflow-x-auto"></div></div></div>
                      </div>
                 </div>
@@ -497,6 +496,14 @@
             const month = currentDate.getMonth();
             const { monthName, daysInMonth, firstDayIndex } = getMonthData(year, month);
             salarieCalendarHeader.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+            
+            const salarieRulesMessage = document.getElementById('salarie-rules-message');
+            if(selectedUserProfile.statut === 'commercial') {
+                salarieRulesMessage.innerHTML = `<p>En tant que commercial, vous pouvez modifier votre présence pour le mois entier à tout moment.</p>`;
+            } else {
+                salarieRulesMessage.innerHTML = `<p>Vous pouvez modifier votre présence pour une semaine jusqu'au <strong>jeudi de l'avant-dernière semaine</strong>. Ex: la semaine du 20 au 24 est modifiable jusqu'au jeudi 9 au soir. Les jours verrouillés sont grisés.</p>`;
+            }
+
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -518,14 +525,16 @@
                     continue;
                 }
                 
-                const deadline = getDeadline(cellDate);
-                const windowStart = new Date(deadline.getTime());
-                windowStart.setDate(windowStart.getDate() - 6);
-                windowStart.setHours(0, 0, 0, 0);
+                let isLocked = false;
+                if (selectedUserProfile.statut !== 'commercial') {
+                    const deadline = getDeadline(cellDate);
+                    const windowStart = new Date(deadline.getTime());
+                    windowStart.setDate(windowStart.getDate() - 6);
+                    windowStart.setHours(0, 0, 0, 0);
+                    isLocked = !(today >= windowStart && today <= deadline);
+                }
                 
-                const isLocked = !(today >= windowStart && today <= deadline);
                 const lockedClass = isLocked ? 'day-locked' : '';
-
                 const daySchedule = schedule[day] || {};
                 const midiStatus = daySchedule.midi || '-';
 
@@ -547,7 +556,7 @@
         const updateSalarieMealCounter = (schedule = {}) => {
             let count = 0;
             for(const day in schedule) {
-                if(!isNaN(day)) { // Ensure it's a day number
+                if(!isNaN(day)) {
                     if(schedule[day] && schedule[day].midi === '1') {
                         count++;
                     }
@@ -633,10 +642,11 @@
         };
         
         const generateUserTable = (userList) => {
-            let html = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border text-left">Nom</th><th class="p-1 sm:p-2 border text-left">Métier/Service</th><th class="p-1 sm:p-2 border text-left">Chambre/Bureau</th><th class="p-1 sm:p-2 border">Actions</th></tr></thead><tbody>`;
+            let html = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border text-left">Nom</th><th class="p-1 sm:p-2 border text-left">Type</th><th class="p-1 sm:p-2 border text-left">Métier/Service</th><th class="p-1 sm:p-2 border">Actions</th></tr></thead><tbody>`;
              userList.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
                 const veggieIcon = user.vegetarien ? ' 🌿' : '';
-                 html += `<tr data-user-row-id="${user.id}"><td class="p-1 sm:p-2 border">${user.prenom} ${user.nom}${veggieIcon}</td><td class="p-1 sm:p-2 border">${user.metier}</td><td class="p-1 sm:p-2 border">${user.chambre}</td><td class="p-1 sm:p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
+                const typeDisplay = user.type === 'salarié' ? `Salarié ${user.statut === 'commercial' ? '(Com.)' : ''}` : 'Itinérant';
+                 html += `<tr data-user-row-id="${user.id}"><td class="p-1 sm:p-2 border">${user.prenom} ${user.nom}${veggieIcon}</td><td class="p-1 sm:p-2 border">${typeDisplay}</td><td class="p-1 sm:p-2 border">${user.metier}</td><td class="p-1 sm:p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
              });
              html += `</tbody></table>`;
              return html;
@@ -739,7 +749,7 @@
              const year = currentDate.getFullYear();
              const month = currentDate.getMonth();
              let csvContent = "data:text/csv;charset=utf-8,";
-             csvContent += "Prénom,Nom,Type,Métier/Service,Chambre/Bureau,Régime Spécial,Total Midi,Total Soir\r\n";
+             csvContent += "Prénom,Nom,Type,Statut,Métier/Service,Chambre/Bureau,Régime Spécial,Total Midi,Total Soir\r\n";
 
             allUsers.forEach(user => {
                 const userSchedule = allSchedules.find(s => s.userId === user.id);
@@ -757,7 +767,7 @@
                     }
                 }
                 const specialDiet = user.vegetarien ? "Végétarien" : "";
-                csvContent += `${user.prenom},${user.nom},${user.type || 'itinérant'},${user.metier},${user.chambre},${specialDiet},${midiCount},${soirCount}\r\n`;
+                csvContent += `${user.prenom},${user.nom},${user.type || 'itinérant'},${user.statut || ''},${user.metier},${user.chambre},${specialDiet},${midiCount},${soirCount}\r\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -769,12 +779,11 @@
             document.body.removeChild(link);
         };
         
-        const loginUser = (selectId) => {
-            const selectElement = document.getElementById(selectId);
-            const selectedId = selectElement.value;
-            if (selectedId) {
-                selectedUserProfile = allUsers.find(u => u.id === selectedId);
+        const loginUser = (userId) => {
+            if (userId) {
+                selectedUserProfile = allUsers.find(u => u.id === userId);
                 if (selectedUserProfile) {
+                    currentDate = new Date();
                     const userType = selectedUserProfile.type || 'itinérant';
                     if (userType === 'salarié') {
                          const today = new Date();
@@ -808,8 +817,8 @@
         };
 
         // --- Event Listeners ---
-        document.getElementById('login-itinerant-btn').addEventListener('click', () => loginUser('itinerant-select'));
-        document.getElementById('login-salarie-btn').addEventListener('click', () => loginUser('salarie-select'));
+        document.getElementById('login-itinerant-btn').addEventListener('click', () => loginUser(selectedItinerantId));
+        document.getElementById('login-salarie-btn').addEventListener('click', () => loginUser(selectedSalarieId));
 
         document.getElementById('login-admin-btn').addEventListener('click', () => {
              if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
@@ -830,6 +839,7 @@
         const userMetierSelect = document.getElementById('user-metier');
         const userChambreInput = document.getElementById('user-chambre');
         const metierServiceLabel = document.getElementById('metier-service-label');
+        const salarieStatutContainer = document.getElementById('salarie-statut-container');
 
         const updateUserCreationForm = () => {
             const type = userTypeSelect.value;
@@ -838,10 +848,12 @@
                 metierServiceLabel.textContent = 'Service';
                 userChambreInput.placeholder = "Bureau";
                 populateMetierSelect(salarieServices, "Choisir un service");
+                salarieStatutContainer.classList.remove('view-hidden');
             } else {
                 metierServiceLabel.textContent = 'Métier';
                 userChambreInput.placeholder = "N° de chambre";
                 populateMetierSelect(itinerantMetiers, "Choisir un métier");
+                salarieStatutContainer.classList.add('view-hidden');
             }
         };
         
@@ -868,6 +880,10 @@
                 vegetarien: form['user-vegetarien'].checked,
                 createdAt: serverTimestamp()
             };
+            if(newUser.type === 'salarié') {
+                newUser.statut = form['salarie-statut'].value;
+            }
+
             try {
                 await addDoc(getUsersCollection(), newUser);
                 document.getElementById('user-create-feedback').textContent = 'Utilisateur créé !';
@@ -971,15 +987,16 @@
             
             if (target.classList.contains('save-edit-btn')) {
                 const userId = target.dataset.id;
+                const updatedData = {
+                    nom: row.querySelector('.edit-nom-input').value,
+                    prenom: row.querySelector('.edit-prenom-input').value,
+                    chambre: row.querySelector('.edit-chambre-input').value,
+                    metier: row.querySelector('.edit-metier-select').value,
+                    type: row.querySelector('.edit-type-select').value,
+                    vegetarien: row.querySelector('.edit-vegetarien-checkbox').checked,
+                    statut: row.querySelector('.edit-statut-select') ? row.querySelector('.edit-statut-select').value : 'standard'
+                };
                 try {
-                    const updatedData = {
-                        nom: row.querySelector('.edit-nom-input').value,
-                        prenom: row.querySelector('.edit-prenom-input').value,
-                        chambre: row.querySelector('.edit-chambre-input').value,
-                        metier: row.querySelector('.edit-metier-select').value,
-                        type: row.querySelector('.edit-type-select').value,
-                        vegetarien: row.querySelector('.edit-vegetarien-checkbox').checked
-                    };
                     await updateDoc(doc(getUsersCollection(), userId), updatedData);
                 } catch (error) { console.error("Error updating user:", error); }
                 return;
@@ -1001,14 +1018,21 @@
                 const typeSelect = typeOptions.map(t => `<option value="${t}" ${userType === t ? 'selected' : ''}>${t}</option>`).join('');
                 
                 const veggieChecked = userToEdit.vegetarien ? 'checked' : '';
+                
+                let statutSelect = '';
+                if(userType === 'salarié') {
+                    const statutOptions = ['standard', 'commercial'];
+                    statutSelect = `<select class="w-full p-1 border rounded mt-1 edit-statut-select">${statutOptions.map(s => `<option value="${s}" ${userToEdit.statut === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('')}</select>`;
+                }
 
                 rowToEdit.innerHTML = `
                     <td class="p-1 sm:p-2 border">
                         <input class="w-full p-1 border rounded edit-prenom-input" value="${userToEdit.prenom}">
                         <input class="w-full p-1 border rounded mt-1 edit-nom-input" value="${userToEdit.nom}">
                     </td>
-                     <td class="p-1 sm:p-2 border">
+                    <td class="p-1 sm:p-2 border">
                         <select class="w-full p-1 border rounded edit-type-select">${typeSelect}</select>
+                        ${statutSelect}
                         <div class="flex items-center mt-1">
                            <input type="checkbox" ${veggieChecked} class="h-4 w-4 text-blue-600 border-gray-300 rounded edit-vegetarien-checkbox">
                            <label class="ml-2 text-xs">Végétarien</label>
