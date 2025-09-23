@@ -243,8 +243,7 @@
         const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
         let currentDate = new Date();
         let unsubscribeUsersLoginListener = null;
-        let selectedItinerantId = null;
-        let selectedSalarieId = null;
+        let isImpersonating = false;
         
         const itinerantMetiers = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier'];
         const salarieServices = ['Développement', 'Administratif', 'Production', 'Financier'];
@@ -418,17 +417,25 @@
         };
 
         const logout = () => {
-            selectedUserProfile = null;
-            currentDate = new Date(); 
-            document.getElementById('user-id-display').textContent = '';
-            showView('login');
+            if(isImpersonating){
+                isImpersonating = false;
+                selectedUserProfile = null;
+                showView('admin');
+                initializeAdminView();
+            } else {
+                selectedUserProfile = null;
+                currentDate = new Date(); 
+                document.getElementById('user-id-display').textContent = '';
+                showView('login');
+            }
         };
 
         // --- Itinerant Logic ---
         const initializeItinerantView = () => {
             if (!selectedUserProfile) return;
-            document.getElementById('user-id-display').textContent = `Profil: ${selectedUserProfile.prenom} (Itinérant)`;
-            
+            document.getElementById('user-id-display').textContent = isImpersonating ? `Admin > ${selectedUserProfile.prenom}`: `Profil: ${selectedUserProfile.prenom} (Itinérant)`;
+            document.getElementById('logout-btn').textContent = isImpersonating ? 'Retour Admin' : 'Déconnexion';
+
             const targetYear = currentDate.getFullYear();
             const targetMonth = currentDate.getMonth();
             const scheduleDocId = `${selectedUserProfile.id}-${targetYear}-${targetMonth}`;
@@ -478,7 +485,8 @@
         // --- Salarié Logic ---
         const initializeSalarieView = () => {
              if (!selectedUserProfile) return;
-            document.getElementById('user-id-display').textContent = `Profil: ${selectedUserProfile.prenom} (Salarié)`;
+            document.getElementById('user-id-display').textContent = isImpersonating ? `Admin > ${selectedUserProfile.prenom}` : `Profil: ${selectedUserProfile.prenom} (Salarié)`;
+            document.getElementById('logout-btn').textContent = isImpersonating ? 'Retour Admin' : 'Déconnexion';
             
             const targetYear = currentDate.getFullYear();
             const targetMonth = currentDate.getMonth();
@@ -526,17 +534,19 @@
                 }
                 
                 let isLocked = false;
-                if (selectedUserProfile.statut === 'commercial') {
-                    const realCurrentDate = new Date();
-                    if (cellDate < today || cellDate.getMonth() !== realCurrentDate.getMonth() || cellDate.getFullYear() !== realCurrentDate.getFullYear()) {
-                        isLocked = true;
+                if (!isImpersonating) { // Admins can always edit
+                    if (selectedUserProfile.statut === 'commercial') {
+                        const realCurrentDate = new Date();
+                        if (cellDate < today || cellDate.getMonth() !== realCurrentDate.getMonth() || cellDate.getFullYear() !== realCurrentDate.getFullYear()) {
+                            isLocked = true;
+                        }
+                    } else {
+                        const deadline = getDeadline(cellDate);
+                        const windowStart = new Date(deadline.getTime());
+                        windowStart.setDate(windowStart.getDate() - 6);
+                        windowStart.setHours(0, 0, 0, 0);
+                        isLocked = !(today >= windowStart && today <= deadline);
                     }
-                } else {
-                    const deadline = getDeadline(cellDate);
-                    const windowStart = new Date(deadline.getTime());
-                    windowStart.setDate(windowStart.getDate() - 6);
-                    windowStart.setHours(0, 0, 0, 0);
-                    isLocked = !(today >= windowStart && today <= deadline);
                 }
                 
                 const lockedClass = isLocked ? 'day-locked' : '';
@@ -573,6 +583,7 @@
         // --- Admin Logic ---
         const initializeAdminView = () => {
             document.getElementById('user-id-display').textContent = 'Mode Administrateur';
+             document.getElementById('logout-btn').textContent = 'Déconnexion';
             const targetYear = currentDate.getFullYear();
             const targetMonth = currentDate.getMonth();
             const schedulesQuery = query(getSchedulesCollection(), where("month", "==", targetMonth), where("year", "==", targetYear));
@@ -651,7 +662,7 @@
              userList.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
                 const veggieIcon = user.vegetarien ? ' 🌿' : '';
                 const typeDisplay = user.type === 'salarié' ? `Salarié ${user.statut === 'commercial' ? '(Com.)' : ''}` : 'Itinérant';
-                 html += `<tr data-user-row-id="${user.id}"><td class="p-1 sm:p-2 border">${user.prenom} ${user.nom}${veggieIcon}</td><td class="p-1 sm:p-2 border">${typeDisplay}</td><td class="p-1 sm:p-2 border">${user.metier}</td><td class="p-1 sm:p-2 border text-center"><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
+                 html += `<tr data-user-row-id="${user.id}"><td class="p-1 sm:p-2 border">${user.prenom} ${user.nom}${veggieIcon}</td><td class="p-1 sm:p-2 border">${typeDisplay}</td><td class="p-1 sm:p-2 border">${user.metier}</td><td class="p-1 sm:p-2 border text-center"><button data-id="${user.id}" class="manage-schedule-btn text-purple-600 hover:text-purple-800">Planning</button><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800 ml-2">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
              });
              html += `</tbody></table>`;
              return html;
@@ -964,6 +975,13 @@
             const target = e.target;
             const row = target.closest('tr');
             if (!row) return;
+            
+            if (target.classList.contains('manage-schedule-btn')) {
+                const userId = target.dataset.id;
+                isImpersonating = true;
+                loginUser(userId);
+                return;
+            }
 
             if (target.classList.contains('delete-user-btn')) {
                 const userId = target.dataset.id;
