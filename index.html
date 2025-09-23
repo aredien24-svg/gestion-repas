@@ -103,9 +103,6 @@
                     <h2 class="text-xl sm:text-2xl font-semibold"></h2>
                     <button id="itinerant-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
                 </div>
-                <div class="text-center mb-4">
-                    <button id="suggest-meal-btn-itinerant" class="px-4 py-2 text-sm font-medium bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Suggérer un plat</button>
-                </div>
                 <div id="itinerant-calendar-container" class="overflow-x-auto"></div>
             </div>
         </main>
@@ -1042,7 +1039,6 @@
             } catch (error) { console.error("Error saving meal: ", error); }
         });
         
-        document.getElementById('suggest-meal-btn-itinerant').addEventListener('click', () => suggestionModal.classList.remove('view-hidden'));
         document.getElementById('suggest-meal-btn-salarie').addEventListener('click', () => suggestionModal.classList.remove('view-hidden'));
         document.getElementById('cancel-suggestion-btn').addEventListener('click', () => suggestionModal.classList.add('view-hidden'));
 
