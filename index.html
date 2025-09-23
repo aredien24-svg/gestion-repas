@@ -25,6 +25,11 @@
         .admin-tab.active { border-bottom: 2px solid #ea580c; color: #1e3a8a; }
         .day-locked { background-color: #f3f4f6; cursor: not-allowed; }
         .day-locked .meal-choice-btn { pointer-events: none; opacity: 0.6; }
+        .modal-overlay {
+            position: fixed; z-index: 50; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex; align-items: center; justify-content: center;
+        }
 
     </style>
 </head>
@@ -110,11 +115,12 @@
         <!-- Vue Salarié -->
         <main id="salarie-view" class="view-hidden">
             <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
-                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                <div class="flex justify-between items-center mb-4 p-4 bg-gray-50 rounded-lg">
                     <div id="salarie-meal-counter" class="text-center">
                         <p class="text-sm text-gray-600">Repas prévus ce mois-ci</p>
                         <p class="text-3xl font-bold text-blue-800">0</p>
                     </div>
+                    <button id="suggest-meal-btn-salarie" class="px-4 py-2 text-sm font-medium bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Suggérer un plat</button>
                 </div>
                 <div id="salarie-rules-message" class="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
                 </div>
@@ -137,6 +143,7 @@
                         <button class="admin-tab py-2 px-1 text-sm sm:text-base" data-tab="users">Utilisateurs</button>
                         <button class="admin-tab py-2 px-1 text-sm sm:text-base" data-tab="suivi">Suivi Salariés</button>
                         <button class="admin-tab py-2 px-1 text-sm sm:text-base" data-tab="menus">Menus</button>
+                        <button class="admin-tab py-2 px-1 text-sm sm:text-base" data-tab="suggestions">Suggestions</button>
                     </nav>
                 </div>
             </div>
@@ -207,8 +214,34 @@
                 <div id="tab-menus" class="view-hidden">
                     <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md"><h2 class="text-2xl font-semibold mb-4">Ajouter / Modifier un menu</h2><form id="meal-form" class="space-y-4"><div><label for="day" class="block text-sm font-medium text-gray-700">Jour de la semaine</label><select id="day" name="day" class="mt-1 block w-full p-2 border-gray-300 rounded-md"><option>Lundi</option> <option>Mardi</option> <option>Mercredi</option> <option>Jeudi</option> <option>Vendredi</option> <option>Samedi</option> <option>Dimanche</option></select></div><div><label for="meal-type" class="block text-sm font-medium text-gray-700">Type de repas</label><select id="meal-type" name="meal-type" class="mt-1 block w-full p-2 border-gray-300 rounded-md"><option>Déjeuner</option><option>Dîner</option></select></div><div><label for="description" class="block text-sm font-medium text-gray-700">Description du repas</label><textarea id="description" name="description" rows="4" class="mt-1 w-full p-2 border border-gray-300 rounded-md" placeholder="Ex: Poulet rôti, frites..."></textarea></div><button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">Enregistrer le menu</button><div id="save-feedback" class="text-center text-green-600 font-medium mt-2"></div></form></div>
                 </div>
+                 
+                 <!-- Suggestions -->
+                <div id="tab-suggestions" class="view-hidden">
+                     <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold mb-4">Suggestions des Utilisateurs</h3>
+                        <div id="suggestions-container" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                    </div>
+                </div>
             </div>
         </main>
+    </div>
+    
+    <!-- Modal de Suggestion -->
+    <div id="suggestion-modal" class="modal-overlay view-hidden">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-4">Suggérer un plat</h2>
+            <form id="suggestion-form" class="space-y-4">
+                <div>
+                    <label for="suggestion-text" class="block text-sm font-medium text-gray-700">Votre suggestion</label>
+                    <textarea id="suggestion-text" rows="4" required class="mt-1 w-full p-2 border border-gray-300 rounded-md" placeholder="Ex: Une raclette !"></textarea>
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="cancel-suggestion-btn" class="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300">Annuler</button>
+                    <button type="submit" class="px-4 py-2 rounded-md text-white bg-blue-800 hover:bg-blue-900">Envoyer</button>
+                </div>
+                 <p id="suggestion-feedback" class="text-green-600 text-sm text-center"></p>
+            </form>
+        </div>
     </div>
 
     <script type="module">
@@ -271,11 +304,13 @@
         const adminUserCountsContainer = document.getElementById('admin-user-counts-container');
         const suiviContainer = document.getElementById('suivi-container');
         const suiviWeekLabel = document.getElementById('suivi-week-label');
+        const suggestionModal = document.getElementById('suggestion-modal');
         
         // --- Collections Refs (Simplified Path) ---
         const getUsersCollection = () => collection(db, 'users');
         const getSchedulesCollection = () => collection(db, 'schedules');
         const getMenusCollection = () => collection(db, 'menus');
+        const getSuggestionsCollection = () => collection(db, 'suggestions');
         
         // --- Date Management ---
         const getMonthData = (year, month) => {
@@ -583,6 +618,22 @@
                  renderAdminReports();
                  initializeDashboard();
                  initializeSuiviView();
+            });
+             
+            onSnapshot(query(getSuggestionsCollection()), (snapshot) => {
+                const suggestionsContainer = document.getElementById('suggestions-container');
+                if(!suggestionsContainer) return;
+                if (snapshot.empty) {
+                    suggestionsContainer.innerHTML = `<p class="text-gray-500">Aucune suggestion pour le moment.</p>`;
+                    return;
+                }
+                let html = '';
+                snapshot.docs.sort((a,b) => b.data().createdAt - a.data().createdAt).forEach(doc => {
+                    const suggestion = doc.data();
+                    const date = suggestion.createdAt.toDate().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    html += `<div class="p-3 bg-gray-50 rounded-md border"><p class="font-medium">"${suggestion.text}"</p><p class="text-xs text-gray-500 mt-1">Suggéré par ${suggestion.userName} le ${date}</p></div>`;
+                });
+                suggestionsContainer.innerHTML = html;
             });
 
              renderUserLists();
