@@ -118,6 +118,16 @@
                     <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
                         <h3 class="text-xl font-semibold mb-2">Planifier les Stages et Vacances</h3>
                         <p class="text-sm text-gray-600 mb-4">Cliquez sur une semaine pour définir son statut pour toute l'année.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="stage-region-location" class="block text-sm font-medium text-gray-700">Lieu du stage en région</label>
+                                <input type="text" id="stage-region-location" class="mt-1 w-full text-sm p-2 border rounded" placeholder="Ex: La Rochelle">
+                            </div>
+                             <div>
+                                <label for="stage-hors-region-location" class="block text-sm font-medium text-gray-700">Lieu du stage hors région</label>
+                                <input type="text" id="stage-hors-region-location" class="mt-1 w-full text-sm p-2 border rounded" placeholder="Ex: Paris">
+                            </div>
+                        </div>
                         <div id="annual-planning-container" class="space-y-4"></div>
                     </div>
                 </div>
@@ -157,6 +167,16 @@
                     <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
                         <h3 class="text-xl font-semibold mb-2">Planifier les Stages et Vacances</h3>
                         <p class="text-sm text-gray-600 mb-4">Cliquez sur une semaine pour définir son statut pour toute l'année.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="stage-region-location-resp" class="block text-sm font-medium text-gray-700">Lieu du stage en région</label>
+                                <input type="text" id="stage-region-location-resp" class="mt-1 w-full text-sm p-2 border rounded" placeholder="Ex: La Rochelle">
+                            </div>
+                             <div>
+                                <label for="stage-hors-region-location-resp" class="block text-sm font-medium text-gray-700">Lieu du stage hors région</label>
+                                <input type="text" id="stage-hors-region-location-resp" class="mt-1 w-full text-sm p-2 border rounded" placeholder="Ex: Paris">
+                            </div>
+                        </div>
                         <div id="annual-planning-container-resp" class="space-y-4"></div>
                     </div>
                 </div>
@@ -613,10 +633,10 @@
                 
                 const annualWeekPlan = annualPlan[weekNum];
                 if ((!daySchedule.midi || daySchedule.midi === '-') && annualWeekPlan) {
-                    daySchedule.midi = annualWeekPlan.status === 'stage' ? 'S' : 'V';
+                    daySchedule.midi = annualWeekPlan.status === 'stage' || annualWeekPlan.status === 'stage_region' || annualWeekPlan.status === 'stage_hors_region' ? 'S' : 'V';
                 }
                 if ((!daySchedule.soir || daySchedule.soir === '-') && annualWeekPlan) {
-                    daySchedule.soir = annualWeekPlan.status === 'stage' ? 'S' : 'V';
+                    daySchedule.soir = annualWeekPlan.status === 'stage' || annualWeekPlan.status === 'stage_region' || annualWeekPlan.status === 'stage_hors_region' ? 'S' : 'V';
                 }
 
                 const midiStatus = daySchedule.midi || '-';
@@ -638,12 +658,15 @@
 
         const renderAnnualPlanning = (container) => {
              const year = new Date().getFullYear();
-            let html = `<h4 class="text-lg font-semibold mb-4 text-center">${year}</h4>`;
+            let html = `<h4 class="text-lg font-semibold mb-4 text-center">${year} - ${year + 1}</h4>`;
             
-            for(let month=0; month<12; month++){
-                html += `<div class="mb-4"><p class="font-semibold text-gray-800">${new Date(year, month).toLocaleString('fr-FR', {month: 'long'})}</p><div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 mt-2">`;
+            for(let month=8; month<20; month++){ // September to August
+                const currentMonth = month % 12;
+                const currentYear = year + Math.floor(month/12);
+
+                html += `<div class="mb-4"><p class="font-semibold text-gray-800">${new Date(currentYear, currentMonth).toLocaleString('fr-FR', {month: 'long'})}</p><div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 mt-2">`;
                 
-                const firstDayOfMonth = new Date(year, month, 1);
+                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
                 const firstMonday = new Date(firstDayOfMonth);
                 firstMonday.setDate(firstDayOfMonth.getDate() - (firstDayOfMonth.getDay() + 6) % 7);
                 
@@ -651,7 +674,7 @@
                     const mondayOfWeek = new Date(firstMonday);
                     mondayOfWeek.setDate(firstMonday.getDate() + i * 7);
 
-                    if(mondayOfWeek.getFullYear() > year || mondayOfWeek.getMonth() > month) break;
+                    if(mondayOfWeek.getMonth() !== currentMonth) continue;
 
                     const sundayOfWeek = new Date(mondayOfWeek);
                     sundayOfWeek.setDate(mondayOfWeek.getDate() + 6);
@@ -662,8 +685,7 @@
                     html += `<div class="border rounded-lg p-2 text-sm">
                         <p class="font-medium">Sem. ${weekNum}</p>
                         <p class="text-xs text-gray-500">${mondayOfWeek.getDate()} - ${sundayOfWeek.getDate()} ${sundayOfWeek.toLocaleString('fr-FR', {month: 'short'})}</p>
-                        <div class="mt-2 space-x-1"><button data-week="${weekNum}" data-status="stage" class="week-status-btn px-2 py-1 text-xs rounded ${weekPlan.status === 'stage' ? 'bg-blue-500 text-white' : 'bg-blue-100'}">S</button><button data-week="${weekNum}" data-status="vacances" class="week-status-btn px-2 py-1 text-xs rounded ${weekPlan.status === 'vacances' ? 'bg-yellow-400 text-white' : 'bg-yellow-100'}">V</button><button data-week="${weekNum}" data-status="none" class="week-status-btn px-2 py-1 text-xs rounded ${weekPlan.status === 'none' ? 'bg-gray-400 text-white' : 'bg-gray-200'}">X</button></div>
-                        ${weekPlan.status === 'stage' ? `<input type="text" data-week="${weekNum}" class="location-input mt-2 w-full text-xs p-1 border rounded" placeholder="Lieu..." value="${weekPlan.location || ''}">` : ''}
+                        <div class="mt-2 space-x-1"><button data-week="${weekNum}" data-status="stage_region" class="week-status-btn px-2 py-1 text-xs rounded ${weekPlan.status === 'stage_region' ? 'bg-blue-500 text-white' : 'bg-blue-100'}">S R</button><button data-week="${weekNum}" data-status="stage_hors_region" class="week-status-btn px-2 py-1 text-xs rounded ${weekPlan.status === 'stage_hors_region' ? 'bg-blue-700 text-white' : 'bg-blue-200'}">S HR</button><button data-week="${weekNum}" data-status="vacances" class="week-status-btn px-2 py-1 text-xs rounded ${weekPlan.status === 'vacances' ? 'bg-yellow-400 text-white' : 'bg-yellow-100'}">V</button><button data-week="${weekNum}" data-status="none" class="week-status-btn px-2 py-1 text-xs rounded ${weekPlan.status === 'none' ? 'bg-gray-400 text-white' : 'bg-gray-200'}">X</button></div>
                     </div>`;
                 }
 
@@ -697,25 +719,24 @@
             const target = e.target;
             if(!target.matches('.location-input')) return;
 
-            const week = target.dataset.week;
-            const location = target.value;
-            
             const planDocRef = getAnnualPlanDoc(selectedUserProfile.id);
-            const newPlan = {...annualPlan};
-            if(newPlan[week]) {
-                newPlan[week].location = location;
-                 try {
-                    await setDoc(planDocRef, newPlan);
-                } catch (error) {
-                    console.error("Error updating annual plan location", error);
-                }
+            if(target.id === 'stage-region-location' || target.id === 'stage-region-location-resp') {
+                annualPlan.stage_region_location = target.value;
+            } else {
+                annualPlan.stage_hors_region_location = target.value;
             }
+            
+            try {
+                await setDoc(planDocRef, annualPlan);
+            } catch (error) { console.error("Error updating location", error) }
         };
 
         document.getElementById('annual-planning-container').addEventListener('click', handleAnnualPlanClick);
         document.getElementById('annual-planning-container-resp').addEventListener('click', handleAnnualPlanClick);
-        document.getElementById('annual-planning-container').addEventListener('blur', handleLocationBlur, true);
-        document.getElementById('annual-planning-container-resp').addEventListener('blur', handleLocationBlur, true);
+        document.getElementById('stage-region-location').addEventListener('blur', handleLocationBlur);
+        document.getElementById('stage-hors-region-location').addEventListener('blur', handleLocationBlur);
+        document.getElementById('stage-region-location-resp').addEventListener('blur', handleLocationBlur);
+        document.getElementById('stage-hors-region-location-resp').addEventListener('blur', handleLocationBlur);
         
         // --- Salarié Logic ---
         const initializeSalarieView = () => {
