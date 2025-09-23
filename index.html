@@ -95,7 +95,7 @@
              </div>
         </main>
 
-        <!-- Vue Itinérant -->
+        <!-- Vue Itinérant Standard -->
         <main id="itinerant-view" class="view-hidden">
             <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
                 <div id="itinerant-calendar-header" class="flex justify-between items-center text-center mb-4">
@@ -104,6 +104,37 @@
                     <button id="itinerant-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
                 </div>
                 <div id="itinerant-calendar-container" class="overflow-x-auto"></div>
+            </div>
+        </main>
+        
+        <!-- Vue Itinérant Responsable -->
+        <main id="responsable-view" class="view-hidden">
+             <div class="mb-4 border-b border-gray-200">
+                <nav id="responsable-tabs" class="flex space-x-8" aria-label="Tabs">
+                    <button class="admin-tab active" data-tab="resp-calendar">Mon Calendrier</button>
+                    <button class="admin-tab" data-tab="resp-suivi">Suivi Corporation</button>
+                </nav>
+            </div>
+            <div id="responsable-tab-content">
+                <div id="tab-resp-calendar">
+                     <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
+                        <div id="responsable-calendar-header" class="flex justify-between items-center text-center mb-4">
+                            <button id="responsable-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
+                            <h2 class="text-xl sm:text-2xl font-semibold"></h2>
+                            <button id="responsable-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
+                        </div>
+                        <div id="responsable-calendar-container" class="overflow-x-auto"></div>
+                    </div>
+                </div>
+                <div id="tab-resp-suivi" class="view-hidden">
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md overflow-x-auto">
+                        <div class="mb-4">
+                            <h3 class="text-xl font-semibold">Suivi de la corporation</h3>
+                            <p id="responsable-suivi-label" class="text-gray-600 text-sm mt-1"></p>
+                        </div>
+                        <div id="responsable-suivi-container"></div>
+                    </div>
+                </div>
             </div>
         </main>
 
@@ -193,7 +224,7 @@
                 <!-- Gestion Utilisateurs -->
                 <div id="tab-users" class="view-hidden">
                      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md"><h3 class="text-xl font-semibold mb-4">Créer un utilisateur</h3><form id="create-user-form" class="space-y-4"><div><label for="user-type" class="block text-sm font-medium text-gray-700">Type de profil</label><select id="user-type" required class="w-full p-2 border rounded mt-1"><option value="itinérant">Itinérant</option><option value="salarié">Salarié</option></select></div><div id="salarie-statut-container" class="view-hidden"><label for="salarie-statut" class="block text-sm font-medium text-gray-700">Statut du Salarié</label><select id="salarie-statut" class="w-full p-2 border rounded mt-1"><option value="standard">Standard</option><option value="commercial">Commercial</option></select></div><input type="text" id="user-nom" placeholder="Nom" required class="w-full p-2 border rounded"><input type="text" id="user-prenom" placeholder="Prénom" required class="w-full p-2 border rounded"><input type="email" id="user-email" placeholder="Email" required class="w-full p-2 border rounded"><input type="text" id="user-chambre" placeholder="N° de chambre" required class="w-full p-2 border rounded"><div><label id="metier-service-label" for="user-metier" class="block text-sm font-medium text-gray-700">Métier</label><select id="user-metier" required class="w-full p-2 border rounded mt-1"></select></div><div class="flex items-center"><input id="user-vegetarien" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"><label for="user-vegetarien" class="ml-2 block text-sm text-gray-900">Végétarien</label></div><button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">Créer</button><p id="user-create-feedback" class="text-green-600 text-sm"></p></form></div>
+                        <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md"><h3 class="text-xl font-semibold mb-4">Créer un utilisateur</h3><form id="create-user-form" class="space-y-4"><div><label for="user-type" class="block text-sm font-medium text-gray-700">Type de profil</label><select id="user-type" required class="w-full p-2 border rounded mt-1"><option value="itinérant">Itinérant</option><option value="salarié">Salarié</option></select></div><div id="salarie-statut-container" class="view-hidden"><label for="salarie-statut" class="block text-sm font-medium text-gray-700">Statut du Salarié</label><select id="salarie-statut" class="w-full p-2 border rounded mt-1"><option value="standard">Standard</option><option value="commercial">Commercial</option></select></div><div id="itinerant-role-container"><label for="itinerant-role" class="block text-sm font-medium text-gray-700">Rôle Itinérant</label><select id="itinerant-role" class="w-full p-2 border rounded mt-1"><option value="standard">Standard</option><option value="responsable">Responsable</option></select></div><input type="text" id="user-nom" placeholder="Nom" required class="w-full p-2 border rounded"><input type="text" id="user-prenom" placeholder="Prénom" required class="w-full p-2 border rounded"><input type="email" id="user-email" placeholder="Email" required class="w-full p-2 border rounded"><input type="text" id="user-chambre" placeholder="N° de chambre" required class="w-full p-2 border rounded"><div><label id="metier-service-label" for="user-metier" class="block text-sm font-medium text-gray-700">Métier</label><select id="user-metier" required class="w-full p-2 border rounded mt-1"></select></div><div class="flex items-center"><input id="user-vegetarien" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"><label for="user-vegetarien" class="ml-2 block text-sm text-gray-900">Végétarien</label></div><button type="submit" class="w-full py-2 px-4 rounded-md text-white bg-blue-800 hover:bg-blue-900">Créer</button><p id="user-create-feedback" class="text-green-600 text-sm"></p></form></div>
                         <div id="user-lists-wrapper" class="lg:col-span-2 space-y-8"><div class="bg-white p-4 sm:p-6 rounded-lg shadow-md"><h3 class="text-xl font-semibold mb-4">Liste des Itinérants</h3><div id="itinerant-list-container" class="overflow-x-auto"></div></div><div class="bg-white p-4 sm:p-6 rounded-lg shadow-md"><h3 class="text-xl font-semibold mb-4">Liste des Salariés</h3><div id="salarie-list-container" class="overflow-x-auto"></div></div></div>
                      </div>
                 </div>
@@ -243,6 +274,8 @@
         const daysOfWeek = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
         let currentDate = new Date();
         let unsubscribeUsersLoginListener = null;
+        let selectedItinerantId = null;
+        let selectedSalarieId = null;
         let isImpersonating = false;
         
         const itinerantMetiers = ['Menuisier', 'Charpentier', 'Maçon', 'Plombier', 'Serrurier-Métallier', 'Peintre', 'Boulanger', 'Pâtissier'];
@@ -251,6 +284,7 @@
         // --- DOM Elements ---
         const loginView = document.getElementById('login-view');
         const itinerantView = document.getElementById('itinerant-view');
+        const responsableView = document.getElementById('responsable-view');
         const salarieView = document.getElementById('salarie-view');
         const adminView = document.getElementById('admin-view');
         const headerControls = document.getElementById('header-controls');
@@ -260,6 +294,8 @@
         const salarieResultsContainer = document.getElementById('salarie-results');
         const itinerantCalendarContainer = document.getElementById('itinerant-calendar-container');
         const itinerantCalendarHeader = document.getElementById('itinerant-calendar-header').querySelector('h2');
+        const responsableCalendarContainer = document.getElementById('responsable-calendar-container');
+        const responsableCalendarHeader = document.getElementById('responsable-calendar-header').querySelector('h2');
         const salarieCalendarContainer = document.getElementById('salarie-calendar-container');
         const salarieCalendarHeader = document.getElementById('salarie-calendar-header').querySelector('h2');
         const adminHeaderDaily = document.getElementById('admin-header-daily');
@@ -300,7 +336,9 @@
             currentDate.setDate(1); 
             currentDate.setMonth(currentDate.getMonth() + monthOffset);
             if (selectedUserProfile) {
-                if (selectedUserProfile.type === 'salarié') {
+                 if (selectedUserProfile.role === 'responsable') {
+                    initializeResponsableView();
+                } else if (selectedUserProfile.type === 'salarié') {
                     initializeSalarieView();
                 } else {
                     initializeItinerantView();
@@ -394,7 +432,8 @@
                 allMenus = {};
                 snapshot.forEach(doc => { allMenus[doc.id] = doc.data(); });
                 if (selectedUserProfile) {
-                    if (selectedUserProfile.type === 'salarié') initializeSalarieView();
+                    if (selectedUserProfile.role === 'responsable') initializeResponsableView();
+                    else if (selectedUserProfile.type === 'salarié') initializeSalarieView();
                     else initializeItinerantView();
                 }
              });
@@ -403,6 +442,7 @@
         const showView = (viewName) => {
             loginView.classList.add('view-hidden');
             itinerantView.classList.add('view-hidden');
+            responsableView.classList.add('view-hidden');
             salarieView.classList.add('view-hidden');
             adminView.classList.add('view-hidden');
             headerControls.classList.add('view-hidden');
@@ -410,6 +450,7 @@
             if (viewName === 'login') loginView.classList.remove('view-hidden');
             else {
                 if (viewName === 'itinerant') itinerantView.classList.remove('view-hidden');
+                if (viewName === 'responsable') responsableView.classList.remove('view-hidden');
                 if (viewName === 'salarie') salarieView.classList.remove('view-hidden');
                 if (viewName === 'admin') adminView.classList.remove('view-hidden');
                 headerControls.classList.remove('view-hidden');
@@ -433,24 +474,71 @@
         // --- Itinerant Logic ---
         const initializeItinerantView = () => {
             if (!selectedUserProfile) return;
-            document.getElementById('user-id-display').textContent = isImpersonating ? `Admin > ${selectedUserProfile.prenom}`: `Profil: ${selectedUserProfile.prenom} (Itinérant)`;
+            document.getElementById('user-id-display').textContent = isImpersonating ? `Admin > ${selectedUserProfile.prenom}` : `Profil: ${selectedUserProfile.prenom} (Itinérant)`;
             document.getElementById('logout-btn').textContent = isImpersonating ? 'Retour Admin' : 'Déconnexion';
-
+            
             const targetYear = currentDate.getFullYear();
             const targetMonth = currentDate.getMonth();
             const scheduleDocId = `${selectedUserProfile.id}-${targetYear}-${targetMonth}`;
             
             onSnapshot(doc(getSchedulesCollection(), scheduleDocId), (doc) => {
                 const userSchedule = doc.exists() ? doc.data() : {};
-                renderItinerantCalendar(userSchedule);
+                renderItinerantCalendar(userSchedule, itinerantCalendarContainer, itinerantCalendarHeader);
             });
         };
+        
+        const initializeResponsableView = () => {
+             if (!selectedUserProfile) return;
+            document.getElementById('user-id-display').textContent = `Profil: ${selectedUserProfile.prenom} (Responsable)`;
+            
+            // Calendar part
+            const targetYear = currentDate.getFullYear();
+            const targetMonth = currentDate.getMonth();
+            const scheduleDocId = `${selectedUserProfile.id}-${targetYear}-${targetMonth}`;
+            onSnapshot(doc(getSchedulesCollection(), scheduleDocId), (doc) => {
+                const userSchedule = doc.exists() ? doc.data() : {};
+                renderItinerantCalendar(userSchedule, responsableCalendarContainer, responsableCalendarHeader);
+            });
 
-        const renderItinerantCalendar = (schedule = {}) => {
+            // Suivi part
+            initializeResponsableSuivi();
+        };
+
+        const initializeResponsableSuivi = async () => {
+            document.getElementById('responsable-suivi-label').textContent = `Mois de ${currentDate.toLocaleString('fr-FR', {month: 'long', year: 'numeric'})}`;
+            const metier = selectedUserProfile.metier;
+            const itinerantsInMetier = allUsers.filter(u => u.metier === metier && (u.type === 'itinérant' || !u.type));
+
+            let html = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border text-left">Nom</th><th class="p-1 sm:p-2 border">Midi</th><th class="p-1 sm:p-2 border">Soir</th></tr></thead><tbody>`;
+
+            for (const itinerant of itinerantsInMetier) {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                const scheduleDoc = await getDoc(doc(getSchedulesCollection(), `${itinerant.id}-${year}-${month}`));
+                const scheduleData = scheduleDoc.exists() ? scheduleDoc.data() : {};
+                
+                let midiCount = 0;
+                let soirCount = 0;
+
+                for (const day in scheduleData) {
+                    if(!isNaN(day)) {
+                        const daySchedule = scheduleData[day];
+                        if (daySchedule.midi === '1' || daySchedule.midi === 'S') midiCount++;
+                        if (daySchedule.soir === '1' || daySchedule.soir === 'S') soirCount++;
+                    }
+                }
+                 html += `<tr><td class="p-1 sm:p-2 border">${itinerant.prenom} ${itinerant.nom}</td><td class="p-1 sm:p-2 border text-center font-bold">${midiCount}</td><td class="p-1 sm:p-2 border text-center font-bold">${soirCount}</td></tr>`;
+            }
+             html += `</tbody></table>`;
+             document.getElementById('responsable-suivi-container').innerHTML = html;
+        };
+
+
+        const renderItinerantCalendar = (schedule = {}, container, header) => {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const { monthName, daysInMonth, firstDayIndex } = getMonthData(year, month);
-            itinerantCalendarHeader.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+            header.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
             let html = `<table class="calendar-table"><thead><tr>`;
             daysOfWeek.forEach(day => html += `<th>${day.substring(0,3)}</th>`);
@@ -479,14 +567,14 @@
                 </td>`;
             }
             html += `</tr></tbody></table>`;
-            itinerantCalendarContainer.innerHTML = html;
+            container.innerHTML = html;
         };
         
         // --- Salarié Logic ---
         const initializeSalarieView = () => {
              if (!selectedUserProfile) return;
             document.getElementById('user-id-display').textContent = isImpersonating ? `Admin > ${selectedUserProfile.prenom}` : `Profil: ${selectedUserProfile.prenom} (Salarié)`;
-            document.getElementById('logout-btn').textContent = isImpersonating ? 'Retour Admin' : 'Déconnexion';
+             document.getElementById('logout-btn').textContent = isImpersonating ? 'Retour Admin' : 'Déconnexion';
             
             const targetYear = currentDate.getFullYear();
             const targetMonth = currentDate.getMonth();
@@ -661,7 +749,7 @@
             let html = `<table class="w-full text-xs sm:text-sm"><thead><tr class="bg-gray-50"><th class="p-1 sm:p-2 border text-left">Nom</th><th class="p-1 sm:p-2 border text-left">Type</th><th class="p-1 sm:p-2 border text-left">Métier/Service</th><th class="p-1 sm:p-2 border">Actions</th></tr></thead><tbody>`;
              userList.sort((a,b) => a.nom.localeCompare(b.nom)).forEach(user => {
                 const veggieIcon = user.vegetarien ? ' 🌿' : '';
-                const typeDisplay = user.type === 'salarié' ? `Salarié ${user.statut === 'commercial' ? '(Com.)' : ''}` : 'Itinérant';
+                const typeDisplay = user.type === 'salarié' ? `Salarié ${user.statut === 'commercial' ? '(Com.)' : ''}` : `Itinérant ${user.role === 'responsable' ? '(Resp.)' : ''}`;
                  html += `<tr data-user-row-id="${user.id}"><td class="p-1 sm:p-2 border">${user.prenom} ${user.nom}${veggieIcon}</td><td class="p-1 sm:p-2 border">${typeDisplay}</td><td class="p-1 sm:p-2 border">${user.metier}</td><td class="p-1 sm:p-2 border text-center"><button data-id="${user.id}" class="manage-schedule-btn text-purple-600 hover:text-purple-800">Planning</button><button data-id="${user.id}" class="edit-user-btn text-blue-600 hover:text-blue-800 ml-2">Modifier</button><button data-id="${user.id}" class="delete-user-btn text-red-600 hover:text-red-800 ml-2">Suppr.</button></td></tr>`;
              });
              html += `</tbody></table>`;
@@ -765,7 +853,7 @@
              const year = currentDate.getFullYear();
              const month = currentDate.getMonth();
              let csvContent = "data:text/csv;charset=utf-8,";
-             csvContent += "Prénom,Nom,Type,Statut,Métier/Service,Chambre/Bureau,Régime Spécial,Total Midi,Total Soir\r\n";
+             csvContent += "Prénom,Nom,Type,Rôle/Statut,Métier/Service,Chambre/Bureau,Régime Spécial,Total Midi,Total Soir\r\n";
 
             allUsers.forEach(user => {
                 const userSchedule = allSchedules.find(s => s.userId === user.id);
@@ -776,14 +864,15 @@
                         if(!isNaN(day)) {
                             const daySchedule = userSchedule[day];
                             if(daySchedule) {
-                                if (daySchedule.midi === '1' || ((user.type === 'itinérant' || !user.type) && daySchedule.midi === 'S')) midiCount++;
-                                if ((user.type === 'itinérant' || !user.type) && (daySchedule.soir === '1' || daySchedule.soir === 'S')) soirCount++;
+                                if (daySchedule.midi === '1' || daySchedule.midi === 'S') midiCount++;
+                                if (daySchedule.soir === '1' || daySchedule.soir === 'S') soirCount++;
                             }
                         }
                     }
                 }
                 const specialDiet = user.vegetarien ? "Végétarien" : "";
-                csvContent += `${user.prenom},${user.nom},${user.type || 'itinérant'},${user.statut || ''},${user.metier},${user.chambre},${specialDiet},${midiCount},${soirCount}\r\n`;
+                const roleStatus = user.type === 'salarié' ? user.statut : user.role;
+                csvContent += `${user.prenom},${user.nom},${user.type || 'itinérant'},${roleStatus || 'standard'},${user.metier},${user.chambre},${specialDiet},${midiCount},${soirCount}\r\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
@@ -800,7 +889,11 @@
                 selectedUserProfile = allUsers.find(u => u.id === userId);
                 if (selectedUserProfile) {
                     const userType = selectedUserProfile.type || 'itinérant';
-                    if (userType === 'salarié') {
+                    if (selectedUserProfile.role === 'responsable') {
+                        currentDate = new Date();
+                        showView('responsable');
+                        initializeResponsableView();
+                    } else if (userType === 'salarié') {
                         if (selectedUserProfile.statut === 'commercial') {
                             currentDate = new Date();
                         } else {
@@ -809,7 +902,7 @@
                             const thisMonday = new Date(today);
                             thisMonday.setDate(today.getDate() - (today.getDay() + 6) % 7);
                             let monitoredWeekMonday;
-                            const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+                            const dayOfWeek = today.getDay();
                             if (dayOfWeek >= 5) { 
                                  monitoredWeekMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 21));
                             } else { 
@@ -859,6 +952,7 @@
         const userChambreInput = document.getElementById('user-chambre');
         const metierServiceLabel = document.getElementById('metier-service-label');
         const salarieStatutContainer = document.getElementById('salarie-statut-container');
+        const itinerantRoleContainer = document.getElementById('itinerant-role-container');
 
         const updateUserCreationForm = () => {
             const type = userTypeSelect.value;
@@ -868,11 +962,13 @@
                 userChambreInput.placeholder = "Bureau";
                 populateMetierSelect(salarieServices, "Choisir un service");
                 salarieStatutContainer.classList.remove('view-hidden');
+                itinerantRoleContainer.classList.add('view-hidden');
             } else {
                 metierServiceLabel.textContent = 'Métier';
                 userChambreInput.placeholder = "N° de chambre";
                 populateMetierSelect(itinerantMetiers, "Choisir un métier");
                 salarieStatutContainer.classList.add('view-hidden');
+                 itinerantRoleContainer.classList.remove('view-hidden');
             }
         };
         
@@ -901,6 +997,8 @@
             };
             if(newUser.type === 'salarié') {
                 newUser.statut = form['salarie-statut'].value;
+            } else {
+                newUser.role = form['itinerant-role'].value;
             }
 
             try {
@@ -914,12 +1012,14 @@
 
         document.getElementById('itinerant-prev-month-btn').addEventListener('click', () => updateCurrentDate(-1));
         document.getElementById('itinerant-next-month-btn').addEventListener('click', () => updateCurrentDate(1));
+        document.getElementById('responsable-prev-month-btn').addEventListener('click', () => updateCurrentDate(-1));
+        document.getElementById('responsable-next-month-btn').addEventListener('click', () => updateCurrentDate(1));
         document.getElementById('salarie-prev-month-btn').addEventListener('click', () => updateCurrentDate(-1));
         document.getElementById('salarie-next-month-btn').addEventListener('click', () => updateCurrentDate(1));
         document.getElementById('admin-prev-month-btn').addEventListener('click', () => updateCurrentDate(-1));
         document.getElementById('admin-next-month-btn').addEventListener('click', () => updateCurrentDate(1));
-
-        itinerantCalendarContainer.addEventListener('click', async (e) => {
+        
+        const handleCalendarClick = async (e, container) => {
             const target = e.target;
             const day = target.dataset.day;
             if (!day || !selectedUserProfile) return;
@@ -949,8 +1049,11 @@
             if (target.classList.contains('day-action-btn')) {
                 updateSchedule({ midi: target.dataset.type === 'stage' ? 'S' : 'V', soir: target.dataset.type === 'stage' ? 'S' : 'V' });
             }
-        });
-        
+        };
+
+        itinerantCalendarContainer.addEventListener('click', (e) => handleCalendarClick(e, itinerantCalendarContainer));
+        responsableCalendarContainer.addEventListener('click', (e) => handleCalendarClick(e, responsableCalendarContainer));
+
         salarieCalendarContainer.addEventListener('click', async (e) => {
              const target = e.target;
              const day = target.dataset.day;
@@ -975,7 +1078,7 @@
             const target = e.target;
             const row = target.closest('tr');
             if (!row) return;
-            
+
             if (target.classList.contains('manage-schedule-btn')) {
                 const userId = target.dataset.id;
                 isImpersonating = true;
@@ -1021,7 +1124,8 @@
                         metier: row.querySelector('.edit-metier-select').value,
                         type: row.querySelector('.edit-type-select').value,
                         vegetarien: row.querySelector('.edit-vegetarien-checkbox').checked,
-                        statut: row.querySelector('.edit-statut-select') ? row.querySelector('.edit-statut-select').value : 'standard'
+                        statut: row.querySelector('.edit-statut-select') ? row.querySelector('.edit-statut-select').value : 'standard',
+                        role: row.querySelector('.edit-role-select') ? row.querySelector('.edit-role-select').value : 'standard'
                     };
                     await updateDoc(doc(getUsersCollection(), userId), updatedData);
                 } catch (error) { console.error("Error updating user:", error); }
@@ -1051,6 +1155,12 @@
                     statutSelect = `<select class="w-full p-1 border rounded mt-1 edit-statut-select">${statutOptions.map(s => `<option value="${s}" ${userToEdit.statut === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('')}</select>`;
                 }
 
+                let roleSelect = '';
+                 if(userType === 'itinérant') {
+                    const roleOptions = ['standard', 'responsable'];
+                    roleSelect = `<select class="w-full p-1 border rounded mt-1 edit-role-select">${roleOptions.map(s => `<option value="${s}" ${userToEdit.role === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join('')}</select>`;
+                }
+
                 rowToEdit.innerHTML = `
                     <td class="p-1 sm:p-2 border">
                         <input class="w-full p-1 border rounded edit-prenom-input" value="${userToEdit.prenom}">
@@ -1059,13 +1169,13 @@
                     <td class="p-1 sm:p-2 border">
                         <select class="w-full p-1 border rounded edit-type-select">${typeSelect}</select>
                         ${statutSelect}
+                        ${roleSelect}
                         <div class="flex items-center mt-1">
                            <input type="checkbox" ${veggieChecked} class="h-4 w-4 text-blue-600 border-gray-300 rounded edit-vegetarien-checkbox">
                            <label class="ml-2 text-xs">Végétarien</label>
                         </div>
                     </td>
                     <td class="p-1 sm:p-2 border"><select class="w-full p-1 border rounded edit-metier-select">${metierSelect}</select></td>
-                    <td class="p-1 sm:p-2 border"><input class="w-full p-1 border rounded edit-chambre-input" value="${userToEdit.chambre}"></td>
                     <td class="p-1 sm:p-2 border text-center align-middle"><button data-id="${userId}" class="save-edit-btn text-green-600 hover:text-green-800 font-bold">OK</button><button class="cancel-edit-btn text-gray-600 hover:text-gray-800 ml-2">X</button></td>
                 `;
             }
@@ -1075,6 +1185,16 @@
         document.getElementById('admin-tabs').addEventListener('click', (e) => {
             if (e.target.matches('.admin-tab')) {
                 switchTab(e.target.dataset.tab);
+            }
+        });
+
+         document.getElementById('responsable-tabs').addEventListener('click', (e) => {
+            if (e.target.matches('.admin-tab')) {
+                const tab = e.target.dataset.tab;
+                document.querySelectorAll('#responsable-tabs .admin-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                document.querySelectorAll('#responsable-tab-content > div').forEach(c => c.classList.add('view-hidden'));
+                document.getElementById(`tab-${tab}`).classList.remove('view-hidden');
             }
         });
         
