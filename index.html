@@ -24,7 +24,11 @@
         .meal-choice-btn.selected { background-color: #1e40af; color: white; font-weight: bold; }
         .admin-tab.active { border-bottom: 2px solid #ea580c; color: #1e3a8a; }
         .day-locked { background-color: #f3f4f6; cursor: not-allowed; }
-        .day-locked .meal-choice-btn { pointer-events: none; opacity: 0.6; }
+        .day-locked .meal-choice-btn, .day-locked .day-action-btn { pointer-events: none; opacity: 0.6; }
+        .week-planner-btn.selected {
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+            font-weight: 600;
+        }
 
     </style>
 </head>
@@ -97,49 +101,58 @@
 
         <!-- Vue Itinérant Standard -->
         <main id="itinerant-view" class="view-hidden">
-            <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
-                 <div class="bg-gray-50 p-3 rounded-md mb-4">
-                    <h3 class="font-semibold text-gray-700">Actions rapides</h3>
-                    <div id="itinerant-stage-planner" class="mt-2 space-y-2 sm:space-y-0 sm:flex sm:items-center sm:space-x-2">
-                        <label for="itinerant-week-select" class="text-sm">Planifier une semaine de stage :</label>
-                        <select id="itinerant-week-select" class="p-1 border rounded-md text-sm w-full sm:w-auto"></select>
-                        <button id="itinerant-set-stage-btn" class="w-full sm:w-auto px-3 py-1 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700">Valider</button>
+            <div class="mb-4 border-b border-gray-200">
+                <nav id="itinerant-main-tabs" class="flex space-x-8" aria-label="Tabs">
+                    <button class="admin-tab active" data-tab="itinerant-calendar-view">Mon Calendrier</button>
+                    <button class="admin-tab" data-tab="itinerant-annual-planning">Planning Annuel</button>
+                </nav>
+            </div>
+            <div id="itinerant-main-tab-content">
+                <div id="tab-itinerant-calendar-view">
+                    <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
+                        <div id="itinerant-calendar-header" class="flex justify-between items-center text-center mb-4">
+                            <button id="itinerant-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
+                            <h2 class="text-xl sm:text-2xl font-semibold"></h2>
+                            <button id="itinerant-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
+                        </div>
+                        <div id="itinerant-calendar-container" class="overflow-x-auto"></div>
                     </div>
                 </div>
-                <div id="itinerant-calendar-header" class="flex justify-between items-center text-center mb-4">
-                    <button id="itinerant-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
-                    <h2 class="text-xl sm:text-2xl font-semibold"></h2>
-                    <button id="itinerant-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
+                <div id="tab-itinerant-annual-planning" class="view-hidden">
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold">Planning Annuel des Stages et Vacances</h3>
+                        <p id="itinerant-planning-year-label" class="text-gray-600 text-sm mt-1"></p>
+                        <div id="itinerant-annual-planning-container" class="mt-4 space-y-6"></div>
+                    </div>
                 </div>
-                <div id="itinerant-calendar-container" class="overflow-x-auto"></div>
             </div>
         </main>
         
         <!-- Vue Itinérant Responsable -->
         <main id="responsable-view" class="view-hidden">
              <div class="mb-4 border-b border-gray-200">
-                <nav id="responsable-tabs" class="flex space-x-8" aria-label="Tabs">
-                    <button class="admin-tab active" data-tab="resp-calendar">Mon Calendrier</button>
+                <nav id="responsable-main-tabs" class="flex space-x-8" aria-label="Tabs">
+                    <button class="admin-tab active" data-tab="resp-calendar-view">Mon Calendrier</button>
+                     <button class="admin-tab" data-tab="resp-annual-planning">Planning Annuel</button>
                     <button class="admin-tab" data-tab="resp-suivi">Suivi Corporation</button>
                 </nav>
             </div>
-            <div id="responsable-tab-content">
-                <div id="tab-resp-calendar">
+            <div id="responsable-main-tab-content">
+                <div id="tab-resp-calendar-view">
                      <div class="bg-white p-2 sm:p-6 rounded-lg shadow-md">
-                         <div class="bg-gray-50 p-3 rounded-md mb-4">
-                            <h3 class="font-semibold text-gray-700">Actions rapides</h3>
-                            <div id="responsable-stage-planner" class="mt-2 space-y-2 sm:space-y-0 sm:flex sm:items-center sm:space-x-2">
-                                <label for="responsable-week-select" class="text-sm">Planifier une semaine de stage :</label>
-                                <select id="responsable-week-select" class="p-1 border rounded-md text-sm w-full sm:w-auto"></select>
-                                <button id="responsable-set-stage-btn" class="w-full sm:w-auto px-3 py-1 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700">Valider</button>
-                            </div>
-                        </div>
                         <div id="responsable-calendar-header" class="flex justify-between items-center text-center mb-4">
                             <button id="responsable-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200">&lt;</button>
                             <h2 class="text-xl sm:text-2xl font-semibold"></h2>
                             <button id="responsable-next-month-btn" class="p-2 rounded-full hover:bg-gray-200">&gt;</button>
                         </div>
                         <div id="responsable-calendar-container" class="overflow-x-auto"></div>
+                    </div>
+                </div>
+                 <div id="tab-resp-annual-planning" class="view-hidden">
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold">Planning Annuel des Stages et Vacances</h3>
+                        <p id="responsable-planning-year-label" class="text-gray-600 text-sm mt-1"></p>
+                        <div id="responsable-annual-planning-container" class="mt-4 space-y-6"></div>
                     </div>
                 </div>
                 <div id="tab-resp-suivi" class="view-hidden">
@@ -284,6 +297,7 @@
         // --- Global State ---
         let currentUserId = null;
         let selectedUserProfile = null;
+        let userAnnualSchedule = {};
         let allUsers = [];
         let allSchedules = [];
         let allMenus = {};
@@ -323,10 +337,11 @@
         const suiviContainer = document.getElementById('suivi-container');
         const suiviWeekLabel = document.getElementById('suivi-week-label');
         
-        // --- Collections Refs (Simplified Path) ---
+        // --- Collections Refs ---
         const getUsersCollection = () => collection(db, 'users');
         const getSchedulesCollection = () => collection(db, 'schedules');
         const getMenusCollection = () => collection(db, 'menus');
+        const getAnnualSchedulesCollection = () => collection(db, 'annual_schedules');
         
         // --- Date Management ---
         const getMonthData = (year, month) => {
@@ -334,6 +349,14 @@
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Monday = 0
             return { monthName, daysInMonth, firstDayIndex };
+        };
+
+        const getWeekNumber = (d) => {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
         };
 
         const getDeadline = (targetDate) => {
@@ -352,12 +375,10 @@
             currentDate.setDate(1); 
             currentDate.setMonth(currentDate.getMonth() + monthOffset);
             if (selectedUserProfile) {
-                 if (selectedUserProfile.role === 'responsable') {
-                    initializeResponsableView();
+                 if (selectedUserProfile.role === 'responsable' || (selectedUserProfile.type === 'itinérant' || !selectedUserProfile.type) ) {
+                    initializeItinerantBasedView();
                 } else if (selectedUserProfile.type === 'salarié') {
                     initializeSalarieView();
-                } else {
-                    initializeItinerantView();
                 }
             }
             if (!adminView.classList.contains('view-hidden')) {
@@ -450,10 +471,8 @@
              onSnapshot(query(getMenusCollection()), (snapshot) => {
                 allMenus = {};
                 snapshot.forEach(doc => { allMenus[doc.id] = doc.data(); });
-                if (selectedUserProfile) {
-                    if (selectedUserProfile.role === 'responsable') initializeResponsableView();
-                    else if (selectedUserProfile.type === 'salarié') initializeSalarieView();
-                    else initializeItinerantView();
+                 if (selectedUserProfile && (selectedUserProfile.type === 'itinérant' || !selectedUserProfile.type || selectedUserProfile.role === 'responsable')) {
+                    initializeItinerantBasedView();
                 }
              });
         };
@@ -484,6 +503,7 @@
                 initializeAdminView();
             } else {
                 selectedUserProfile = null;
+                userAnnualSchedule = {};
                 currentDate = new Date(); 
                 document.getElementById('user-id-display').textContent = '';
                 showView('login');
@@ -491,36 +511,37 @@
         };
 
         // --- Itinerant Logic ---
-        const initializeItinerantView = () => {
+        const initializeItinerantBasedView = async () => {
             if (!selectedUserProfile) return;
-            document.getElementById('user-id-display').textContent = isImpersonating ? `Admin > ${selectedUserProfile.prenom}` : `Profil: ${selectedUserProfile.prenom} (Itinérant)`;
-            document.getElementById('logout-btn').textContent = isImpersonating ? 'Retour Admin' : 'Déconnexion';
-            
-            const targetYear = currentDate.getFullYear();
-            const targetMonth = currentDate.getMonth();
-            const scheduleDocId = `${selectedUserProfile.id}-${targetYear}-${targetMonth}`;
-            
-            onSnapshot(doc(getSchedulesCollection(), scheduleDocId), (doc) => {
-                const userSchedule = doc.exists() ? doc.data() : {};
-                renderItinerantCalendar(userSchedule, itinerantCalendarContainer, itinerantCalendarHeader);
-            });
-        };
-        
-        const initializeResponsableView = () => {
-             if (!selectedUserProfile) return;
-            document.getElementById('user-id-display').textContent = `Profil: ${selectedUserProfile.prenom} (Responsable)`;
-            
-            // Calendar part
-            const targetYear = currentDate.getFullYear();
-            const targetMonth = currentDate.getMonth();
-            const scheduleDocId = `${selectedUserProfile.id}-${targetYear}-${targetMonth}`;
-            onSnapshot(doc(getSchedulesCollection(), scheduleDocId), (doc) => {
-                const userSchedule = doc.exists() ? doc.data() : {};
-                renderItinerantCalendar(userSchedule, responsableCalendarContainer, responsableCalendarHeader);
-            });
 
-            // Suivi part
-            initializeResponsableSuivi();
+            const isResp = selectedUserProfile.role === 'responsable';
+            const viewPrefix = isResp ? 'responsable' : 'itinerant';
+            
+            // Set common display elements
+            document.getElementById('user-id-display').textContent = isImpersonating ? `Admin > ${selectedUserProfile.prenom}` : `Profil: ${selectedUserProfile.prenom} (${isResp ? 'Responsable' : 'Itinérant'})`;
+            document.getElementById('logout-btn').textContent = isImpersonating ? 'Retour Admin' : 'Déconnexion';
+
+            // Fetch annual schedule first
+            const annualScheduleDoc = await getDoc(doc(getAnnualSchedulesCollection(), selectedUserProfile.id));
+            userAnnualSchedule = annualScheduleDoc.exists() ? annualScheduleDoc.data() : {};
+            
+            // Initialize monthly calendar view
+            const targetYear = currentDate.getFullYear();
+            const targetMonth = currentDate.getMonth();
+            const scheduleDocId = `${selectedUserProfile.id}-${targetYear}-${targetMonth}`;
+            
+            onSnapshot(doc(getSchedulesCollection(), scheduleDocId), (doc) => {
+                const userSchedule = doc.exists() ? doc.data() : {};
+                renderItinerantCalendar(userSchedule, document.getElementById(`${viewPrefix}-calendar-container`), document.getElementById(`${viewPrefix}-calendar-header`).querySelector('h2'), userAnnualSchedule);
+            });
+            
+            // Initialize annual planning view
+            initializeAnnualPlanner(viewPrefix, userAnnualSchedule);
+
+            // Initialize extra responsable view parts
+            if (isResp) {
+                initializeResponsableSuivi();
+            }
         };
 
         const initializeResponsableSuivi = async () => {
@@ -559,17 +580,11 @@
              document.getElementById('responsable-suivi-container').innerHTML = html;
         };
 
-
-        const renderItinerantCalendar = (schedule = {}, container, header) => {
+        const renderItinerantCalendar = (schedule = {}, container, header, annualSchedule = {}) => {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const { monthName, daysInMonth, firstDayIndex } = getMonthData(year, month);
             header.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-
-            const weekSelect = container.id.includes('responsable') ? document.getElementById('responsable-week-select') : document.getElementById('itinerant-week-select');
-            weekSelect.innerHTML = '';
-            let weeks = [];
-            let currentWeekStart = 1;
 
             let html = `<table class="calendar-table"><thead><tr>`;
             daysOfWeek.forEach(day => html += `<th>${day.substring(0,3)}</th>`);
@@ -581,13 +596,9 @@
                 
                 const dayDate = new Date(year, month, day);
                 const dayOfWeekName = daysOfWeek[dayDate.getDay() === 0 ? 6 : dayDate.getDay() - 1];
-                const dayOfWeekIndex = (dayDate.getDay() + 6) % 7; // Monday = 0
                 
-                if (dayOfWeekIndex === 6 || day === daysInMonth) {
-                    let endOfWeek = day;
-                    weeks.push({start: currentWeekStart, end: endOfWeek});
-                    currentWeekStart = day + 1;
-                }
+                const weekNum = getWeekNumber(dayDate);
+                const weekStatus = annualSchedule.weeks ? annualSchedule.weeks[weekNum] : null;
 
                 const menuDejeuner = allMenus[`${dayOfWeekName}-Déjeuner`]?.description || '';
                 const menuDiner = allMenus[`${dayOfWeekName}-Dîner`]?.description || '';
@@ -596,10 +607,19 @@
                 if (menuDiner) menuHtml += `<p><b>S:</b> ${menuDiner}</p>`;
 
                 const daySchedule = schedule[day] || {};
-                const midiStatus = daySchedule.midi || '-';
-                const soirStatus = daySchedule.soir || '-';
+                let midiStatus = daySchedule.midi || '-';
+                let soirStatus = daySchedule.soir || '-';
+                let lockedClass = '';
+                
+                if (weekStatus === 'Stage') {
+                    midiStatus = 'S'; soirStatus = 'S';
+                    lockedClass = 'day-locked bg-blue-50';
+                } else if (weekStatus === 'Vacances') {
+                    midiStatus = 'V'; soirStatus = 'V';
+                    lockedClass = 'day-locked bg-yellow-50';
+                }
 
-                html += `<td class="h-36 sm:h-40 p-1 sm:p-2">
+                html += `<td class="h-36 sm:h-40 p-1 sm:p-2 ${lockedClass}">
                     <div class="calendar-day-number">${day}</div>
                     <div class="text-xs text-gray-500 mt-1 space-y-1">${menuHtml}</div>
                     <div class="mt-2 space-y-1 text-xs">
@@ -611,13 +631,6 @@
             }
             html += `</tr></tbody></table>`;
             container.innerHTML = html;
-
-            weeks.forEach(week => {
-                const option = document.createElement('option');
-                option.value = `${week.start}-${week.end}`;
-                option.textContent = `Semaine du ${week.start} au ${week.end}`;
-                weekSelect.appendChild(option);
-            });
         };
         
         // --- Salarié Logic ---
@@ -939,10 +952,10 @@
                 selectedUserProfile = allUsers.find(u => u.id === userId);
                 if (selectedUserProfile) {
                     const userType = selectedUserProfile.type || 'itinérant';
-                    if (selectedUserProfile.role === 'responsable') {
+                    if (userType === 'itinérant' || selectedUserProfile.role === 'responsable') {
                         currentDate = new Date();
-                        showView('responsable');
-                        initializeResponsableView();
+                        showView(selectedUserProfile.role === 'responsable' ? 'responsable' : 'itinerant');
+                        initializeItinerantBasedView();
                     } else if (userType === 'salarié') {
                         if (selectedUserProfile.statut === 'commercial') {
                             currentDate = new Date();
@@ -962,50 +975,29 @@
                         }
                         showView('salarie');
                         initializeSalarieView();
-                    } else {
-                        currentDate = new Date();
-                        showView('itinerant');
-                        initializeItinerantView();
                     }
                 }
             }
         };
 
-        const switchTab = (tabName) => {
-            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-            document.querySelector(`.admin-tab[data-tab="${tabName}"]`).classList.add('active');
+        const switchAdminTab = (tabName) => {
+            document.querySelectorAll('#admin-tabs .admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`#admin-tabs .admin-tab[data-tab="${tabName}"]`).classList.add('active');
             document.querySelectorAll('#admin-tab-content > div').forEach(c => c.classList.add('view-hidden'));
             document.getElementById(`tab-${tabName}`).classList.remove('view-hidden');
         };
 
-        const setWeekAsStage = async (weekSelectId) => {
-            const weekSelect = document.getElementById(weekSelectId);
-            if (!weekSelect.value || !selectedUserProfile) return;
-
-            const [startDay, endDay] = weekSelect.value.split('-').map(Number);
-
-            const targetYear = currentDate.getFullYear();
-            const targetMonth = currentDate.getMonth();
-            const scheduleDocRef = doc(getSchedulesCollection(), `${selectedUserProfile.id}-${targetYear}-${targetMonth}`);
-
-            const scheduleUpdate = {};
-            for (let day = startDay; day <= endDay; day++) {
-                scheduleUpdate[day] = { midi: 'S', soir: 'S' };
-            }
-
-            try {
-                await setDoc(scheduleDocRef, scheduleUpdate, { merge: true });
-            } catch (error) {
-                console.error("Error setting week as stage:", error);
-            }
+        const switchItinerantTab = (tabName, navId, contentId) => {
+            document.querySelectorAll(`#${navId} .admin-tab`).forEach(t => t.classList.remove('active'));
+            document.querySelector(`#${navId} .admin-tab[data-tab="${tabName}"]`).classList.add('active');
+            document.querySelectorAll(`#${contentId} > div`).forEach(c => c.classList.add('view-hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('view-hidden');
         };
-
+        
         // --- Event Listeners ---
         document.getElementById('login-itinerant-btn').addEventListener('click', () => loginUser(selectedItinerantId));
         document.getElementById('login-salarie-btn').addEventListener('click', () => loginUser(selectedSalarieId));
-        document.getElementById('itinerant-set-stage-btn').addEventListener('click', () => setWeekAsStage('itinerant-week-select'));
-        document.getElementById('responsable-set-stage-btn').addEventListener('click', () => setWeekAsStage('responsable-week-select'));
-
+        
         document.getElementById('login-admin-btn').addEventListener('click', () => {
              if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
                 document.getElementById('admin-error').textContent = '';
@@ -1096,7 +1088,7 @@
         const handleCalendarClick = async (e, container) => {
             const target = e.target;
             const day = target.dataset.day;
-            if (!day || !selectedUserProfile) return;
+            if (!day || !selectedUserProfile || target.closest('.day-locked')) return;
             
             const targetYear = currentDate.getFullYear();
             const targetMonth = currentDate.getMonth();
@@ -1258,23 +1250,25 @@
 
         document.getElementById('admin-tabs').addEventListener('click', (e) => {
             if (e.target.matches('.admin-tab')) {
-                switchTab(e.target.dataset.tab);
+                switchAdminTab(e.target.dataset.tab);
             }
         });
 
-         document.getElementById('responsable-tabs').addEventListener('click', (e) => {
+        document.getElementById('itinerant-main-tabs').addEventListener('click', (e) => {
+             if (e.target.matches('.admin-tab')) {
+                switchItinerantTab(e.target.dataset.tab, 'itinerant-main-tabs', 'itinerant-main-tab-content');
+            }
+        });
+
+         document.getElementById('responsable-main-tabs').addEventListener('click', (e) => {
             if (e.target.matches('.admin-tab')) {
-                const tab = e.target.dataset.tab;
-                document.querySelectorAll('#responsable-tabs .admin-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                document.querySelectorAll('#responsable-tab-content > div').forEach(c => c.classList.add('view-hidden'));
-                document.getElementById(`tab-${tab}`).classList.remove('view-hidden');
+                switchItinerantTab(e.target.dataset.tab, 'responsable-main-tabs', 'responsable-main-tab-content');
             }
         });
         
-        document.getElementById('dashboard-goto-suivi').addEventListener('click', () => switchTab('suivi'));
-        document.getElementById('dashboard-goto-users').addEventListener('click', () => switchTab('users'));
-        document.getElementById('dashboard-goto-menus').addEventListener('click', () => switchTab('menus'));
+        document.getElementById('dashboard-goto-suivi').addEventListener('click', () => switchAdminTab('suivi'));
+        document.getElementById('dashboard-goto-users').addEventListener('click', () => switchAdminTab('users'));
+        document.getElementById('dashboard-goto-menus').addEventListener('click', () => switchAdminTab('menus'));
         
         document.getElementById('meal-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1291,6 +1285,92 @@
                 setTimeout(() => document.getElementById('save-feedback').textContent = '', 2000);
             } catch (error) { console.error("Error saving meal: ", error); }
         });
+
+        // --- Annual Planner ---
+        const initializeAnnualPlanner = (viewPrefix, annualSchedule) => {
+            const container = document.getElementById(`${viewPrefix}-annual-planning-container`);
+            const label = document.getElementById(`${viewPrefix}-planning-year-label`);
+            generateAnnualPlannerUI(container, label, annualSchedule);
+
+            container.addEventListener('click', (e) => {
+                if(e.target.matches('.week-planner-btn')) {
+                    handleAnnualPlanningClick(e, annualSchedule);
+                }
+            });
+        };
+
+        const handleAnnualPlanningClick = async (e, annualSchedule) => {
+            const { week, status } = e.target.dataset;
+            const currentStatus = annualSchedule.weeks ? annualSchedule.weeks[week] : null;
+
+            const newStatus = (currentStatus === status) ? null : status;
+
+            const scheduleDocRef = doc(getAnnualSchedulesCollection(), selectedUserProfile.id);
+            try {
+                await setDoc(scheduleDocRef, {
+                    weeks: {
+                        ...annualSchedule.weeks,
+                        [week]: newStatus
+                    }
+                }, { merge: true });
+                userAnnualSchedule.weeks = { ...annualSchedule.weeks, [week]: newStatus };
+                
+                const viewPrefix = selectedUserProfile.role === 'responsable' ? 'responsable' : 'itinerant';
+                 initializeItinerantBasedView();
+            } catch (error) {
+                console.error("Error updating annual schedule:", error);
+            }
+        };
+
+        const generateAnnualPlannerUI = (container, label, annualSchedule) => {
+            const today = new Date();
+            let startYear = today.getFullYear();
+            if (today.getMonth() < 8) { // School year starts in September
+                startYear -= 1;
+            }
+            const endYear = startYear + 1;
+            label.textContent = `Année scolaire ${startYear} - ${endYear}`;
+
+            let html = '';
+            for (let year = startYear; year <= endYear; year++) {
+                const startMonth = (year === startYear) ? 8 : 0; // Sept to Dec
+                const endMonth = (year === endYear) ? 7 : 11; // Jan to Aug
+
+                for (let month = startMonth; month <= endMonth; month++) {
+                    const monthName = new Date(year, month).toLocaleString('fr-FR', { month: 'long' });
+                    html += `<div class="mb-2"><h4 class="font-semibold text-lg text-blue-800">${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}</h4>`;
+                    
+                    const weeksInMonth = {};
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                    for(let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(year, month, day);
+                        const weekNum = getWeekNumber(date);
+                        if(!weeksInMonth[weekNum]) {
+                            weeksInMonth[weekNum] = { start: day, end: day };
+                        } else {
+                            weeksInMonth[weekNum].end = day;
+                        }
+                    }
+
+                    html += '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">';
+                    Object.keys(weeksInMonth).forEach(weekNum => {
+                        const week = weeksInMonth[weekNum];
+                        const weekStatus = annualSchedule.weeks ? annualSchedule.weeks[weekNum] : null;
+
+                        html += `<div class="flex items-center justify-between p-2 border rounded-lg bg-gray-50">
+                            <span class="font-mono text-sm text-gray-600">S${weekNum} <span class="text-gray-400">(${week.start}-${week.end})</span></span>
+                            <div class="flex items-center space-x-1">
+                                <button data-week="${weekNum}" data-status="Stage" class="week-planner-btn text-xs px-2 py-1 rounded-md bg-blue-100 text-blue-800 hover:bg-blue-200 ${weekStatus === 'Stage' ? 'selected' : ''}">Stage</button>
+                                <button data-week="${weekNum}" data-status="Vacances" class="week-planner-btn text-xs px-2 py-1 rounded-md bg-yellow-100 text-yellow-800 hover:bg-yellow-200 ${weekStatus === 'Vacances' ? 'selected' : ''}">Vacances</button>
+                                <button data-week="${weekNum}" data-status="clear" class="week-planner-btn text-xs px-2 py-1 rounded-md bg-gray-200 hover:bg-gray-300">X</button>
+                            </div>
+                        </div>`;
+                    });
+                     html += `</div></div>`;
+                }
+            }
+            container.innerHTML = html;
+        };
         
     </script>
 </body>
